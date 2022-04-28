@@ -50,4 +50,4 @@ class VoiceAssistant(SpeechWorker):
                 print(e)
 
     def greeting(self, *args) -> None:
-        self.speak("Привет, мой хозяин", "greeting/hello")
+        self.speak("Привет, мой хозяин", self._get_sound_path("greeting/hello"))
