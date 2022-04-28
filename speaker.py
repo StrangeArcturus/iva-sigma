@@ -24,6 +24,7 @@ class Speaker:
         """
         Получение текста и его озвучивание от гугла
         """
+        logger.log(f"Произношу вслух ответ:\n{text}")
         try:
             if exists(path):
                 if isfile(path):

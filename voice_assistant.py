@@ -28,14 +28,24 @@ class VoiceAssistant(SpeechWorker):
             self.scheme = _load(file)
 
     def execute_command(self, arguments: str) -> None:
+        """
+        Пробегает по схеме ассистента и ищет совпадение токен-фразы с ключом.
+        Ключ является названием метода, который имеется в данном классе
+        """
         for key in self.scheme.keys():
             if key == arguments or arguments.startswith(key) or key.startswith(arguments):
                 self.__getattribute__(self.scheme[arguments])()
     
     def start_hear(self) -> NoReturn:
+        """
+        Цикличное прослушивание окружающей среды
+        """
         while True:
             try:
                 owner_speech = self.record_and_recognize_audio().lower()
+                if not owner_speech.startswith(self.name):
+                    continue
+                owner_speech = owner_speech.replace(self.name, '', 1)
                 remove('microphone-results.wav')
                 logger.log(f'Произнесено:\n{owner_speech}')
                 words = owner_speech.split()
@@ -49,5 +59,8 @@ class VoiceAssistant(SpeechWorker):
                 print(msg)
                 print(e)
 
-    def greeting(self, *args) -> None:
+    def hello(self, *args) -> None:
         self.speak("Привет, мой хозяин", self._get_sound_path("greeting/hello"))
+
+    def good_morning(self, *args) -> None:
+        self.speak("Доброго утра хозяин", self._get_sound_path("greeting/good_morning"))

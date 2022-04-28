@@ -12,6 +12,11 @@ class SpeechWorker(Speaker, Recognizer):
     На его плечах и генерация речи, и её обработка
     """
     def _get_sound_path(self, title: str) -> str:
+        """
+        Генерация путей для кеширования аудиозаписей,
+        дабы не запрашивать одно и то же по многу раз,
+        а также для экономии трафика без применения оффлайн озвучки
+        """
         path_in_cache = f'./cache-sounds/{title}'
         if exists(path_in_cache):
             files = listdir(path_in_cache)
