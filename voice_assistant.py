@@ -38,7 +38,8 @@ class VoiceAssistant(SpeechWorker):
     
     def start_hear(self) -> NoReturn:
         """
-        Цикличное прослушивание окружающей среды
+        Цикличное прослушивание окружающей среды,
+        управление программой не возвращает
         """
         while True:
             try:
