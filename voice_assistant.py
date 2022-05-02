@@ -1,6 +1,7 @@
 from typing import Dict, NoReturn
 from json import load as _load
 from os import remove
+import re
 
 from speech_worker import SpeechWorker
 from my_logger import logger
@@ -35,6 +36,7 @@ class VoiceAssistant(SpeechWorker):
         for key in self.scheme.keys():
             if key == arguments or arguments.startswith(key) or key.startswith(arguments):
                 self.__getattribute__(self.scheme[arguments])()
+                break
     
     def start_hear(self) -> NoReturn:
         """
@@ -44,11 +46,14 @@ class VoiceAssistant(SpeechWorker):
         while True:
             try:
                 owner_speech = self.record_and_recognize_audio().lower()
-                if not owner_speech.startswith(self.name):
-                    continue
-                owner_speech = owner_speech.replace(self.name, '', 1)
-                remove('microphone-results.wav')
                 logger.log(f'Произнесено:\n{owner_speech}')
+                if not owner_speech.startswith(self.name.lower()):
+                    continue
+                # owner_speech = owner_speech.replace(self.name.lower(), '', 1)
+                owner_speech = re.sub(rf'{self.name.lower()} ?,?', '', owner_speech, 1)
+                # вариант с регексом
+                # TODO починить фильтрацию по имени
+                remove('microphone-results.wav')
                 words = owner_speech.split()
                 # command, *arguments = words
                 command = owner_speech

@@ -29,10 +29,12 @@ class Speaker:
             if exists(path):
                 if isfile(path):
                     playsound(path)
+                    return text
             else:
                 gtts = gTTS(text=text, lang="ru")
                 gtts.save(path)
                 playsound(path)
+                return text
         except gTTSError:
             msg = "Что-то произошло с генерацией речи google..."
             if config.say_errors:
