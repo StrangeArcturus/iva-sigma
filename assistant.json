@@ -2,5 +2,6 @@
     "name": "Яна",
     "sex": "female",
     "speech_language": "ru",
-    "recognition_language": "en"
+    "recognition_language": "en",
+    "over_hear_minutes": 10
 }
