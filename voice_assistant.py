@@ -87,8 +87,12 @@ class VoiceAssistant(SpeechWorker):
                     self.speak(msg, "runtime-error")
                 logger.error(msg)
                 print(e)
-        
+    
+    #name
     def call(self, *args) -> None:
+        """
+        Задействуется, если пользователь позвал ассистента по имени
+        """
         if not self.is_over_hear:
             self.is_over_hear = True
             self.started_over_hear = dt.now()
@@ -97,15 +101,21 @@ class VoiceAssistant(SpeechWorker):
             self.speak("хозяин, я вас уже внимательно слушаю", 'already-carefull')
     
     def relax(self, *args) -> None:
+        """
+        Если пользователь попросил отдохнуть
+        """
         if not self.is_over_hear:
             self.speak("хозяин, я ведь уже отдыхаю", 'relax/already-relax')
         else:
             self.is_over_hear = False
             self.started_over_hear = None
             self.speak("конечно, хозяин, отдыхаю", 'relax/go-to-relax')
+    #endname
 
+    #greeting
     def hello(self, *args) -> None:
         self.speak("Привет, мой хозяин", "greeting/hello")
 
     def good_morning(self, *args) -> None:
         self.speak("Доброго утра хозяин", "greeting/good_morning")
+    #endgreeting
