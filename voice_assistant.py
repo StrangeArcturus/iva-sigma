@@ -8,6 +8,8 @@ from speech_worker import SpeechWorker
 from my_logger import logger
 from config import config
 
+from fuzzywuzzy.fuzz import token_sort_ratio
+
 
 class VoiceAssistant(SpeechWorker):
     """
@@ -49,6 +51,8 @@ class VoiceAssistant(SpeechWorker):
             if key == arguments or arguments.startswith(key) or key.startswith(arguments):
                 self.__getattribute__(self.scheme[arguments])()
                 break
+            if token_sort_ratio(key, arguments) >= 90:
+                self.__getattribute__(self.scheme[key])()
     
     def start_hear(self) -> NoReturn:
         """
@@ -81,19 +85,27 @@ class VoiceAssistant(SpeechWorker):
                 msg = "Упс, возникла ошибка..."
                 if config.say_errors:
                     self.speak(msg, "runtime-error")
-                print(msg)
+                logger.error(msg)
                 print(e)
         
     def call(self, *args) -> None:
         if not self.is_over_hear:
             self.is_over_hear = True
             self.started_over_hear = dt.now()
-            self.speak("да, хозяин, слушаю вас внимательно", self._get_sound_path('carefull-hear'))
+            self.speak("да, хозяин, слушаю вас внимательно", 'carefull-hear')
         else:
-            self.speak("хозяин, я вас уже внимательно слушаю", self._get_sound_path('already-carefull'))
+            self.speak("хозяин, я вас уже внимательно слушаю", 'already-carefull')
+    
+    def relax(self, *args) -> None:
+        if not self.is_over_hear:
+            self.speak("хозяин, я ведь уже отдыхаю", 'relax/already-relax')
+        else:
+            self.is_over_hear = False
+            self.started_over_hear = None
+            self.speak("конечно, хозяин, отдыхаю", 'relax/go-to-relax')
 
     def hello(self, *args) -> None:
-        self.speak("Привет, мой хозяин", self._get_sound_path("greeting/hello"))
+        self.speak("Привет, мой хозяин", "greeting/hello")
 
     def good_morning(self, *args) -> None:
-        self.speak("Доброго утра хозяин", self._get_sound_path("greeting/good_morning"))
+        self.speak("Доброго утра хозяин", "greeting/good_morning")

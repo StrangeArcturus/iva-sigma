@@ -46,7 +46,7 @@ class Recognizer:
             except sr.WaitTimeoutError:
                 msg = "Пожалуйста, проверьте, что микрофон включен"
                 if config.say_errors:
-                    self.speak(msg, self._get_sound_path('check-micro'))
+                    self.speak(msg, 'check-micro')
 
                 logger.error(msg)
                 traceback.print_exc()
@@ -64,7 +64,7 @@ class Recognizer:
                 # play_voice_assistant_speech("What did you say again?")
                 msg = "Пожалуйста, повторите"
                 if config.say_errors:
-                    self.speak(msg, self._get_sound_path('please-repeat'))
+                    self.speak(msg, 'please-repeat')
 
                 logger.error(msg)
                 return ''
@@ -73,7 +73,7 @@ class Recognizer:
             except sr.RequestError:
                 msg = "Пытаюсь задействовать оффлайн распознавание..."
                 if config.say_warnings:
-                    self.speak(msg, self._get_sound_path('try-offline-recognize'))
+                    self.speak(msg, 'try-offline-recognize')
                 logger.warn(msg)
                 recognized_data = self.use_offline_recognition()
             
@@ -93,7 +93,7 @@ class Recognizer:
                     "https://alphacephei.com/vosk/models и распакуйте как 'model' в текущую директорию."
                 )
                 if config.say_warnings:
-                    self.speak(msg.split('\n')[0][:-1], self._get_sound_path('please-get-models'))
+                    self.speak(msg.split('\n')[0][:-1], 'please-get-models')
                 logger.warn(msg)
                 return ''
 
@@ -114,7 +114,7 @@ class Recognizer:
             traceback.print_exc()
             msg = "Простите, у меня не получается распознать речь, попробуйте позже..."
             if config.say_errors:
-                self.speak(msg, self._get_sound_path('impossible-to-recognize'))
+                self.speak(msg, 'impossible-to-recognize')
             logger.error(msg)
 
         return recognized_data

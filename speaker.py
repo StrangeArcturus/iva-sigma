@@ -20,10 +20,11 @@ class Speaker:
     def _get_sound_path(self, title: str) -> str:
         ...
 
-    def speak(self, text: str, path: str) -> str:
+    def speak(self, text: str, label: str) -> str:
         """
         Получение текста и его озвучивание от гугла
         """
+        path = self._get_sound_path(label)
         logger.log(f"Произношу вслух ответ:\n{text}")
         try:
             if exists(path):
@@ -38,7 +39,7 @@ class Speaker:
         except gTTSError:
             msg = "Что-то произошло с генерацией речи google..."
             if config.say_errors:
-                self.speak(msg, self._get_sound_path('google-generation-trouble'))
+                self.speak(msg, 'google-generation-trouble')
             logger.error(msg)
         except:
             self.offline_speak(text)
@@ -52,7 +53,7 @@ class Speaker:
         except:
             msg = "Что-то пошло не так с генерацией речи оффлайн..."
             if config.say_errors:
-                self.speak(msg, self._get_sound_path('offline-generation-trouble'))
+                self.speak(msg, 'offline-generation-trouble')
             logger.error(msg)
         finally:
             return text
