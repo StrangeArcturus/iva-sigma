@@ -51,7 +51,7 @@ class VoiceAssistant(SpeechWorker):
             if key == arguments or arguments.startswith(key) or key.startswith(arguments):
                 self.__getattribute__(self.scheme[arguments])()
                 break
-            if token_sort_ratio(key, arguments) >= 90:
+            if token_sort_ratio(key, arguments) >= 75:
                 self.__getattribute__(self.scheme[key])()
     
     def start_hear(self) -> NoReturn:
@@ -117,5 +117,31 @@ class VoiceAssistant(SpeechWorker):
         self.speak("Привет, мой хозяин", "greeting/hello")
 
     def good_morning(self, *args) -> None:
-        self.speak("Доброго утра хозяин", "greeting/good_morning")
+        now_hour = dt.now().time().hour
+        """
+        [0-4) ночь 4
+        [4-12) утро 8 
+        [12-17) день 5
+        [17-24) вечер 7
+        [24-4) ночь 4
+        по общепринятым меркам
+
+        и ниже для меня
+        """
+        if now_hour in range(0, 4):
+            self.speak(
+                "хозяин, мне кажется вы перепутали ночь и утро, вам разве не пора спать?",
+                'greeting/from-morning-to-night'
+            )
+        if now_hour in (4, 5):
+            self.speak("что-то вы сегодня рано, хозяин. доброе утро", 'greeting/early-morning')
+        if now_hour in range(6, 12):
+            self.speak("доброе утро хозяин", "greeting/good_morning")
+        if now_hour in range(12, 17):
+            self.speak("хозяин, но ведь сейчас день?", 'greeting/from-morning-to-day')
+        if now_hour in range(17, 24):
+            self.speak(
+                "мой хозяин, сейчас ведь вечер, совсем не утро",
+                'greeting/from-morning-to-evening'
+            )
     #endgreeting
