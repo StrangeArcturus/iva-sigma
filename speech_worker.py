@@ -17,6 +17,10 @@ class SpeechWorker(Speaker, Recognizer):
         дабы не запрашивать одно и то же по многу раз,
         а также для экономии трафика без применения оффлайн озвучки
         """
+        if title == "dynamic-speech":
+            path = './cache-sounds/dynamic-speech'
+            makedirs(path, exist_ok=True)
+            return f'{path}/1.mp3'
         path_in_cache = f'./cache-sounds/{title}'
         if exists(path_in_cache):
             files = listdir(path_in_cache)

@@ -27,6 +27,11 @@ class Speaker:
         path = self._get_sound_path(label)
         logger.log(f"Произношу вслух ответ:\n{text}")
         try:
+            if path == './cache-sounds/dynamic-speech/1.mp3':
+                gtts = gTTS(text=text, lang="ru")
+                gtts.save(path)
+                playsound(path)
+                return text
             if exists(path):
                 if isfile(path):
                     playsound(path)
