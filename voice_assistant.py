@@ -46,13 +46,13 @@ class VoiceAssistant(SpeechWorker):
             if not arguments:
                 break
             if arguments.lower() == self.name.lower():
-                self.call()
+                self.call(arguments)
                 break
             if key == arguments or arguments.startswith(key) or key.startswith(arguments):
-                self.__getattribute__(self.scheme[arguments])()
+                self.__getattribute__(self.scheme[arguments])(arguments)
                 break
             if token_sort_ratio(key, arguments) >= 75:
-                self.__getattribute__(self.scheme[key])()
+                self.__getattribute__(self.scheme[key])(arguments)
     
     def start_hear(self) -> NoReturn:
         """
