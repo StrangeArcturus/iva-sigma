@@ -162,7 +162,7 @@ class VoiceAssistant(SpeechWorker):
         self.speak("что-то вы сегодня рано, хозяин. доброе утро", 'greeting/early-morning')
 
     def good_morning(self, *args) -> None:
-        now_hour = dt.now().time().hour
+        times_of_day = self.__get_times_of_day()
         """
         [0-4) ночь 4
         [4-12) утро 8 
@@ -173,18 +173,18 @@ class VoiceAssistant(SpeechWorker):
 
         и ниже для меня
         """
-        if now_hour in range(0, 4):
+        if times_of_day == self.__NIGHT:
             self.speak(
                 "хозяин, мне кажется вы перепутали ночь и утро, вам разве не пора спать?",
                 'greeting/from-morning-to-night'
             )
-        if now_hour in (4, 5):
+        if times_of_day == self.__EARLY:
             self.early_morning(*args)
-        if now_hour in range(6, 12):
+        if times_of_day == self.__MORNING:
             self.speak("доброе утро хозяин", "greeting/good_morning")
-        if now_hour in range(12, 17):
+        if times_of_day == self.__DAY:
             self.speak("хозяин, но ведь сейчас день?", 'greeting/from-morning-to-day')
-        if now_hour in range(17, 24):
+        if times_of_day == self.__EVENING:
             self.speak(
                 "мой хозяин, сейчас ведь вечер, совсем не утро",
                 'greeting/from-morning-to-evening'
