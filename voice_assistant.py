@@ -219,5 +219,30 @@ class VoiceAssistant(SpeechWorker):
             )        
     
     def good_evening(self, *args) -> None:
-        ...
+        times_of_day = self.__get_times_of_day()
+        if times_of_day == self.__NIGHT:
+            self.speak(
+                "сейчас ведь ночь, а вовсе не вечер, хозяин",
+                'greeting/from-evening-to-night'
+            )
+        elif times_of_day == self.__EARLY:
+            self.speak(
+                "простите, хозяин, но до вечера пол дня. конечно решать вам, ещё или уже",
+                'greeting/from-evening-to-early'
+            )
+        elif times_of_day == self.__MORNING:
+            self.speak(
+                "хозяин, извините, но мне показалось, что вы спутали восход и заход. ведь сейчас утро",
+                'greeting/from-evening-to-morning'
+            )
+        elif times_of_day == self.__DAY:
+            self.speak(
+                "не торопите события, хозяин, сейчас только день",
+                'greeting/from-evening-to-day'
+            )
+        elif times_of_day == self.__EVENING:
+            self.speak(
+                "добрый вечер, мой хозяин",
+                'greeting/good_evening'
+            )
     #endgreeting
