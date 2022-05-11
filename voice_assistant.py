@@ -1,7 +1,7 @@
-from typing import Dict, NoReturn, Optional
+from typing import Dict, List, NoReturn, Optional
 from datetime import datetime as dt, timedelta
+from random import random, shuffle
 from json import load as _load
-from random import random
 from os import remove
 import re
 
@@ -22,7 +22,7 @@ class VoiceAssistant(SpeechWorker):
     speech_language: str
     recognition_language: str
     over_hear_minutes: float
-    scheme: Dict[str, str]
+    scheme: Dict[str, List[str]]
 
     started_over_hear: Optional[dt] = None
     is_over_hear: bool = False
@@ -67,6 +67,21 @@ class VoiceAssistant(SpeechWorker):
         Пробегает по схеме ассистента и ищет совпадение токен-фразы с ключом.
         Ключ является названием метода, который имеется в данном классе
         """
+        sheme = list(self.scheme.items())
+        shuffle(sheme)
+        for skill, triggers in sheme:
+            if not arguments:
+                break
+            if arguments.lower() == self.name.lower():
+                self.call(arguments)
+                break
+            if arguments.lower() in map(lambda trigger: trigger.lower(), triggers):
+                self.__getattribute__(skill)(arguments)
+                break
+            if any({token_sort_ratio(trigger, arguments) >= 75 for trigger in triggers}):
+                self.__getattribute__(skill)(arguments)
+                break
+        """
         for key in self.scheme.keys():
             if not arguments:
                 break
@@ -78,6 +93,7 @@ class VoiceAssistant(SpeechWorker):
                 break
             if token_sort_ratio(key, arguments) >= 75:
                 self.__getattribute__(self.scheme[key])(arguments)
+        """
     
     def start_hear(self) -> NoReturn:
         """
