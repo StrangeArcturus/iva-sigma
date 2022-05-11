@@ -178,20 +178,45 @@ class VoiceAssistant(SpeechWorker):
                 "хозяин, мне кажется вы перепутали ночь и утро, вам разве не пора спать?",
                 'greeting/from-morning-to-night'
             )
-        if times_of_day == self.__EARLY:
+        elif times_of_day == self.__EARLY:
             self.early_morning(*args)
-        if times_of_day == self.__MORNING:
+        elif times_of_day == self.__MORNING:
             self.speak("доброе утро хозяин", "greeting/good_morning")
-        if times_of_day == self.__DAY:
+        elif times_of_day == self.__DAY:
             self.speak("хозяин, но ведь сейчас день?", 'greeting/from-morning-to-day')
-        if times_of_day == self.__EVENING:
+        elif times_of_day == self.__EVENING:
             self.speak(
                 "мой хозяин, сейчас ведь вечер, совсем не утро",
                 'greeting/from-morning-to-evening'
             )
     
     def good_day(self, *args) -> None:
-        ...
+        times_of_day = self.__get_times_of_day()
+        if times_of_day == self.__NIGHT:
+            self.speak(
+                "хозяин, мне кажется вы перепутали ночь и день, вам разве не пора спать?",
+                'greeting/from-day-to-night'
+            )
+        elif times_of_day == self.__EARLY:
+            self.speak(
+                "я думаю, для дня сейчас ещё слишком рано, хозяин. доброе утро",
+                'greeting/from-day-to-early'
+            )
+        elif times_of_day == self.__MORNING:
+            self.speak(
+                "хозяин, некуда спешить, ведь сейчас только утро",
+                'greeting/from-day-to-morning'
+            )
+        elif times_of_day == self.__DAY:
+            self.speak(
+                "вам тоже добрый день, мой хозяин",
+                'greeting/good_day'
+            )
+        elif times_of_day == self.__EVENING:
+            self.speak(
+                "мой хозяин, вы немножко припозднились. добрый вечер",
+                'greeting/from-day-to-evening'
+            )        
     
     def good_evening(self, *args) -> None:
         ...
