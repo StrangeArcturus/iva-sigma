@@ -81,19 +81,6 @@ class VoiceAssistant(SpeechWorker):
             if any({token_sort_ratio(trigger, arguments) >= 75 for trigger in triggers}):
                 self.__getattribute__(skill)(arguments)
                 break
-        """
-        for key in self.scheme.keys():
-            if not arguments:
-                break
-            if arguments.lower() == self.name.lower():
-                self.call(arguments)
-                break
-            if key == arguments or arguments.startswith(key) or key.startswith(arguments):
-                self.__getattribute__(self.scheme[arguments])(arguments)
-                break
-            if token_sort_ratio(key, arguments) >= 75:
-                self.__getattribute__(self.scheme[key])(arguments)
-        """
     
     def start_hear(self) -> NoReturn:
         """
@@ -155,6 +142,9 @@ class VoiceAssistant(SpeechWorker):
 
     #greeting
     def hello(self, *args) -> None:
+        """
+        Приветствие. По воле случая либо просто "привет", либо с указанием времени суток
+        """
         if round(random()):
             self.speak("Привет, мой хозяин", "greeting/hello")
         else:
@@ -175,20 +165,16 @@ class VoiceAssistant(SpeechWorker):
                 self.good_evening(*args)
         
     def early_morning(self, *args) -> None:
+        """
+        Для так называемого, (моего) раннего времени, когда обычно я не бодрствую, но скоро начал бы
+        """
         self.speak("что-то вы сегодня рано, хозяин. доброе утро", 'greeting/early-morning')
 
     def good_morning(self, *args) -> None:
+        """
+        Доброе утро. Но если на момент вызова не утро, то об этом сообщат
+        """
         times_of_day = self.__get_times_of_day()
-        """
-        [0-4) ночь 4
-        [4-12) утро 8 
-        [12-17) день 5
-        [17-24) вечер 7
-        [24-4) ночь 4
-        по общепринятым меркам
-
-        и ниже для меня
-        """
         if times_of_day == self.__NIGHT:
             self.speak(
                 "хозяин, мне кажется вы перепутали ночь и утро, вам разве не пора спать?",
@@ -207,6 +193,9 @@ class VoiceAssistant(SpeechWorker):
             )
     
     def good_day(self, *args) -> None:
+        """
+        Добрый день. И тут тоже сообщат о несоответствии
+        """
         times_of_day = self.__get_times_of_day()
         if times_of_day == self.__NIGHT:
             self.speak(
@@ -235,6 +224,9 @@ class VoiceAssistant(SpeechWorker):
             )        
     
     def good_evening(self, *args) -> None:
+        """
+        Добрый вечер. Так же, с указанием
+        """
         times_of_day = self.__get_times_of_day()
         if times_of_day == self.__NIGHT:
             self.speak(
