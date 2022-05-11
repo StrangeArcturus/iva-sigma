@@ -1,6 +1,7 @@
 from typing import Dict, NoReturn, Optional
 from datetime import datetime as dt, timedelta
 from json import load as _load
+from random import random
 from os import remove
 import re
 
@@ -26,6 +27,12 @@ class VoiceAssistant(SpeechWorker):
     started_over_hear: Optional[dt] = None
     is_over_hear: bool = False
 
+    __MORNING = "MORNING"
+    __DAY = "DAY"
+    __EVENING = "EVENING"
+    __NIGHT = "NIGHT"
+    __EARLY = "EARLY"
+
     def __init__(self) -> None:
         with open('./assistant.json', 'rt', encoding='utf-8') as file:
             owner_obj: Dict[str, str] = _load(file)
@@ -36,6 +43,24 @@ class VoiceAssistant(SpeechWorker):
             self.scheme = _load(file)
         
         self.over_hear_delta = timedelta(minutes=self.over_hear_minutes)
+    
+    def __get_times_of_day(self) -> str:
+        """
+        Получение текущего состояния: утро, день, вечер, ночь или раннее утро сейчас
+        """
+        now_hour = dt.now().time().hour
+
+        if now_hour in range(0, 4):
+            return self.__NIGHT
+        elif now_hour in (4, 5):
+            return self.__EARLY
+        elif now_hour in range(6, 12):
+            return self.__MORNING
+        elif now_hour in range(12, 17):
+            return self.__DAY
+        elif now_hour in range(17, 24):
+            return self.__EVENING
+        return self.__EVENING
 
     def execute_command(self, arguments: str) -> None:
         """
@@ -114,7 +139,27 @@ class VoiceAssistant(SpeechWorker):
 
     #greeting
     def hello(self, *args) -> None:
-        self.speak("Привет, мой хозяин", "greeting/hello")
+        if round(random()):
+            self.speak("Привет, мой хозяин", "greeting/hello")
+        else:
+            times_of_day = self.__get_times_of_day()
+            if times_of_day == self.__NIGHT:
+                self.speak(
+                    "хозяин, мне кажется, сейчас время подходит больше для сна и отдыха. "
+                    "пожалуйста, позвольте позаботиться о вас и попросить ложиться спать поскорее",
+                    "greeting/from-hello-to-night"
+                )
+            elif times_of_day == self.__EARLY:
+                self.early_morning(*args)
+            elif times_of_day == self.__MORNING:
+                self.good_morning(*args)
+            elif times_of_day == self.__DAY:
+                self.good_day(*args)
+            elif times_of_day == self.__EVENING:
+                self.good_evening(*args)
+        
+    def early_morning(self, *args) -> None:
+        self.speak("что-то вы сегодня рано, хозяин. доброе утро", 'greeting/early-morning')
 
     def good_morning(self, *args) -> None:
         now_hour = dt.now().time().hour
@@ -134,7 +179,7 @@ class VoiceAssistant(SpeechWorker):
                 'greeting/from-morning-to-night'
             )
         if now_hour in (4, 5):
-            self.speak("что-то вы сегодня рано, хозяин. доброе утро", 'greeting/early-morning')
+            self.early_morning(*args)
         if now_hour in range(6, 12):
             self.speak("доброе утро хозяин", "greeting/good_morning")
         if now_hour in range(12, 17):
@@ -144,4 +189,10 @@ class VoiceAssistant(SpeechWorker):
                 "мой хозяин, сейчас ведь вечер, совсем не утро",
                 'greeting/from-morning-to-evening'
             )
+    
+    def good_day(self, *args) -> None:
+        ...
+    
+    def good_evening(self, *args) -> None:
+        ...
     #endgreeting
