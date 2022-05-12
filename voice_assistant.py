@@ -96,14 +96,14 @@ class VoiceAssistant(SpeechWorker):
                 owner_speech = self.record_and_recognize_audio().lower()
                 logger.log(f'Произнесено:\n{owner_speech}')
                 if not self.is_over_hear:
-                    if not owner_speech.startswith(self.name.lower()):
+                    if not owner_speech.startswith(self.name.lower()) and not owner_speech.endswith(self.name.lower()):
                         continue
                     # owner_speech = owner_speech.replace(self.name.lower(), '', 1)
                     if owner_speech.lower() != self.name.lower():
-                        owner_speech = re.sub(rf'{self.name.lower()} ?,?', '', owner_speech, 1)
-                if re.match(rf'{self.name.lower()}.', owner_speech):
-                    owner_speech = re.sub(rf'{self.name.lower()} ?,?', '', owner_speech, 1)
-                # вариант с регексом
+                        if owner_speech.startswith(self.name.lower()):
+                            owner_speech = (owner_speech[len(self.name):]).strip()
+                        if owner_speech.endswith(self.name.lower()):
+                            owner_speech = (owner_speech[:-len(self.name)]).strip()
                 remove('microphone-results.wav')
                 words = owner_speech.split()
                 # command, *arguments = words
