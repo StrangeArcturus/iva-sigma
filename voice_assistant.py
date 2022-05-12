@@ -253,3 +253,23 @@ class VoiceAssistant(SpeechWorker):
                 'greeting/good_evening'
             )
     #endgreeting
+
+    #random
+    def toss_coin(self, *args) -> None:
+        """
+        Подбросить монетку
+        """
+        self.speak("подкидываю монетку", 'toss-coin/tossing')
+        flips_count = 3
+        heads = 0
+        tails = 0
+        for _ in range(flips_count):
+            if round(random()):
+                heads += 1
+            else:
+                tails += 1
+        if tails > heads:
+            self.speak("выпала решка", 'toss-coin/tails-win')
+        else:
+            self.speak("выпали орлы", 'toss-coin/heads-win')
+    #endrandom
