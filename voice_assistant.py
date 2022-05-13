@@ -8,6 +8,7 @@ from speech_worker import SpeechWorker
 from my_logger import logger
 from config import config
 
+from wikipediaapi import Wikipedia, ExtractFormat
 from fuzzywuzzy.fuzz import token_sort_ratio
 
 
@@ -31,6 +32,13 @@ class VoiceAssistant(SpeechWorker):
     __EVENING = "EVENING"
     __NIGHT = "NIGHT"
     __EARLY = "EARLY"
+
+    wiki_wiki = Wikipedia(
+        language='en',
+        extract_format=ExtractFormat.WIKI
+    )
+    #search_on_wikipedia. добавить свойство с ключами-триггенами
+
 
     def __init__(self) -> None:
         with open('./assistant.json', 'rt', encoding='utf-8') as file:
@@ -273,3 +281,10 @@ class VoiceAssistant(SpeechWorker):
         else:
             self.speak("выпали орлы", 'toss-coin/heads-win')
     #endrandom
+    #internet
+    def search_on_wikipedia(self, *args) -> None:
+        """
+        Поиск определения в Википедии
+        """
+        ...
+    #endinternet
