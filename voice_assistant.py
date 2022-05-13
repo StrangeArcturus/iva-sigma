@@ -3,6 +3,7 @@ from datetime import datetime as dt, timedelta
 from random import random, shuffle
 from json import load as _load
 from os import remove
+import re
 
 from speech_worker import SpeechWorker
 from my_logger import logger
@@ -86,6 +87,9 @@ class VoiceAssistant(SpeechWorker):
                 self.__getattribute__(skill)(arguments)
                 break
             if any({token_sort_ratio(trigger, arguments) >= 75 for trigger in triggers}):
+                self.__getattribute__(skill)(arguments)
+                break
+            if any({re.match(trigger, arguments) for trigger in triggers}):
                 self.__getattribute__(skill)(arguments)
                 break
     
