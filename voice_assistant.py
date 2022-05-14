@@ -25,6 +25,8 @@ class VoiceAssistant(SpeechWorker):
     over_hear_minutes: float
     scheme: Dict[str, List[str]]
 
+    __DYNAMIC = "dynamic-speech"
+
     started_over_hear: Optional[dt] = None
     is_over_hear: bool = False
 
@@ -34,11 +36,10 @@ class VoiceAssistant(SpeechWorker):
     __NIGHT = "NIGHT"
     __EARLY = "EARLY"
 
-    wiki_wiki = Wikipedia(
-        language='en',
+    wiki = Wikipedia(
+        language='ru',
         extract_format=ExtractFormat.WIKI
     )
-    #search_on_wikipedia. добавить свойство с ключами-триггенами
 
 
     def __init__(self) -> None:
@@ -90,7 +91,7 @@ class VoiceAssistant(SpeechWorker):
                 self.__getattribute__(skill)(arguments)
                 break
             if any({re.match(trigger, arguments) for trigger in triggers}):
-                self.__getattribute__(skill)(arguments)
+                self.__getattribute__(skill)(arguments, triggers)
                 break
     
     def start_hear(self) -> NoReturn:
@@ -285,10 +286,19 @@ class VoiceAssistant(SpeechWorker):
         else:
             self.speak("выпали орлы", 'toss-coin/heads-win')
     #endrandom
+
     #internet
     def search_on_wikipedia(self, *args) -> None:
         """
         Поиск определения в Википедии
         """
-        ...
+        request: str = args[0]
+        patterns: List[str] = args[1]
+        for pattern in patterns:
+            if re.match(pattern, request):
+                request = re.sub(pattern[:-2], '', request)
+                break
+        result = self.wiki.page(request).text.split('\n\n')[0]
+        self.speak('хозяин, вот что мне удалось найти по вашему запросу в википедии', self.__DYNAMIC)
+        self.speak(result, self.__DYNAMIC)
     #endinternet
