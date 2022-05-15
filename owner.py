@@ -2,7 +2,7 @@ from json import load as _load
 from typing import Dict
 
 
-class Owner:
+class __Owner:
     """
     Класс, определяющий необходимые сведения о владельце (хозяине)
     """
@@ -18,4 +18,4 @@ class Owner:
                 setattr(self, key, owner_obj[key])
 
 
-owner = Owner()
+owner = __Owner()

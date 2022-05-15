@@ -4,14 +4,19 @@ from random import random, shuffle
 from json import load as _load
 from os import remove
 import webbrowser
+import requests
 import re
 
 from speech_worker import SpeechWorker
 from my_logger import logger
+from tokens import tokens
 from config import config
+from owner import owner
 
 from wikipediaapi import Wikipedia, ExtractFormat
 from fuzzywuzzy.fuzz import token_sort_ratio
+from pyowm.weatherapi25.weather import Weather
+from pyowm import OWM
 
 
 class VoiceAssistant(SpeechWorker):
@@ -42,6 +47,7 @@ class VoiceAssistant(SpeechWorker):
         extract_format=ExtractFormat.WIKI
     )
 
+    translate_url = "https://translated-mymemory---translation-memory.p.rapidapi.com/api/get"
 
     def __init__(self) -> None:
         with open('./assistant.json', 'rt', encoding='utf-8') as file:
@@ -71,6 +77,22 @@ class VoiceAssistant(SpeechWorker):
         elif now_hour in range(17, 24):
             return self.__EVENING
         return self.__EVENING
+    
+    def __get_translate(self, text: str) -> str:
+        """
+        Перевод текста с английского на русский
+        """
+        query = {
+            "q": text,
+            "langpair": "en|ru"
+        }
+        headers = {
+            "X-RapidAPI-Host": "translated-mymemory---translation-memory.p.rapidapi.com",
+            "X-RapidAPI-Key": tokens.translate
+        }
+
+        response = requests.request("GET", self.translate_url, headers=headers, params=query)
+        return response.text
 
     def execute_command(self, arguments: str) -> None:
         """
@@ -307,7 +329,30 @@ class VoiceAssistant(SpeechWorker):
         """
         Получение прогноза погоды
         """
-        ...
+        self.speak(
+            "конечно, хозяин, выполняю запрос о погоде. подождите немного, пожалуйста",
+            self.__DYNAMIC
+        )
+        city = owner.home_city
+        weather: Weather = OWM(tokens.OWM).weather_manager().weather_at_place(city).weather
+
+        status: str = weather.detailed_status
+        temp: int = round(weather.temperature('celsius')["temp"])
+        wind: int = round(weather.wind()["speed"])
+        
+        status = self.__get_translate(status)
+
+        # self.speak(f"текущий статус погоды: {status}", self.__DYNAMIC)
+        # {"message":"You are not subscribed to this API."}
+        # :/
+        self.speak(
+            f"скорость ветра составляет приблизительно {wind} метров в секунду",
+            self.__DYNAMIC
+        )
+        self.speak(
+            f"а температура за окном примерно {temp} градусов цельсия",
+            self.__DYNAMIC
+        )
     
     def search_google(self, *args) -> None:
         """
