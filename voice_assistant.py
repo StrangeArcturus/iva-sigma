@@ -3,6 +3,7 @@ from datetime import datetime as dt, timedelta
 from random import random, shuffle
 from json import load as _load
 from os import remove
+import webbrowser
 import re
 
 from speech_worker import SpeechWorker
@@ -301,4 +302,27 @@ class VoiceAssistant(SpeechWorker):
         result = self.wiki.page(request).text.split('\n\n')[0]
         self.speak('хозяин, вот что мне удалось найти по вашему запросу в википедии', self.__DYNAMIC)
         self.speak(result, self.__DYNAMIC)
+    
+    def get_weather(self, *args) -> None:
+        """
+        Получение прогноза погоды
+        """
+        ...
+    
+    def search_google(self, *args) -> None:
+        """
+        Поиск в гугл и открытие браузера
+        """
+        request: str = args[0]
+        patterns: List[str] = args[1]
+        for pattern in patterns:
+            if re.match(pattern, request):
+                request = re.sub(pattern[:-2], '', request)
+                break
+        url = f"https://google.com/search?q={request}"
+        self.speak(
+            f"конечно, хозяин, выполняю поиск в гугле по вашему запросу {request}",
+            "dynamic-speech"
+        )
+        webbrowser.get().open(url)
     #endinternet
