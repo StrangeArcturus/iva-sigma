@@ -113,7 +113,7 @@ class VoiceAssistant(SpeechWorker):
             if any({token_sort_ratio(trigger, arguments) >= 75 for trigger in triggers}):
                 self.__getattribute__(skill)(arguments)
                 break
-            if any({re.match(trigger, arguments) for trigger in triggers}):
+            if any({re.match(trigger + ' .+' if trigger.endswith(' .+') else trigger, arguments) for trigger in triggers}):
                 self.__getattribute__(skill)(arguments, triggers)
                 break
     
@@ -174,6 +174,14 @@ class VoiceAssistant(SpeechWorker):
             self.started_over_hear = None
             self.speak("конечно, хозяин, отдыхаю", 'relax/go-to-relax')
     #endname
+
+    #thank
+    def thanks(self, *args) -> None:
+        """
+        Ответ на благодарение пользователя
+        """
+        self.speak("рада служить, хозяин", 'thank')
+    #endthank
 
     #greeting
     def hello(self, *args) -> None:
