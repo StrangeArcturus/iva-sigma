@@ -322,6 +322,12 @@ class VoiceAssistant(SpeechWorker):
                 request = re.sub(pattern[:-2], '', request)
                 break
         result = self.wiki.page(request).text.split('\n\n')[0]
+        result = (
+            "простите, хозяин, по всей видимости произошли неполадки во время запроса к википедии, "
+            "или же мой модуль распознавания речи дал сбой. "
+            "попробуйте снова или же попросите бездарную слугу о чём-нибудь ином что ей под силу"
+            if not result else result
+        )
         self.speak('хозяин, вот что мне удалось найти по вашему запросу в википедии', self.__DYNAMIC)
         self.speak(result, self.__DYNAMIC)
     
