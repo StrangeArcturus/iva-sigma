@@ -376,4 +376,5 @@ class VoiceAssistant(SpeechWorker):
             "dynamic-speech"
         )
         webbrowser.get().open(url)
+        self.speak(f"в вашем браузере открыты результаты поиска по запросу {request}, хозяин", self.__DYNAMIC)
     #endinternet
