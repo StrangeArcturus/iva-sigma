@@ -63,7 +63,7 @@ class Recognizer:
             except sr.UnknownValueError:
                 # play_voice_assistant_speech("What did you say again?")
                 msg = "Пожалуйста, повторите"
-                if config.say_errors:
+                if config.say_warnings:
                     self.speak(msg, 'please-repeat')
 
                 logger.error(msg)
@@ -118,3 +118,6 @@ class Recognizer:
             logger.error(msg)
 
         return recognized_data
+
+    def input(self) -> str:
+        return self.record_and_recognize_audio().lower()

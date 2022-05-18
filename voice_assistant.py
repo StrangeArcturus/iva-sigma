@@ -128,7 +128,7 @@ class VoiceAssistant(SpeechWorker):
                     if dt.now() - self.started_over_hear >= self.over_hear_delta:
                         self.is_over_hear = False
                         self.started_over_hear = None
-                owner_speech = self.record_and_recognize_audio().lower()
+                owner_speech = self.input()
                 logger.log(f'Произнесено:\n{owner_speech}')
                 if not self.is_over_hear:
                     if not owner_speech.startswith(self.name.lower()) and not owner_speech.endswith(self.name.lower()):
@@ -317,6 +317,11 @@ class VoiceAssistant(SpeechWorker):
         else:
             self.speak("выпали орлы", 'toss-coin/heads-win')
     #endrandom
+
+    #games
+    def city(self, *args) -> None:
+        ...
+    #endgames
 
     #internet
     def search_on_wikipedia(self, *args) -> None:
