@@ -1,6 +1,6 @@
 from typing import Dict, List, NoReturn, Optional
 from datetime import datetime as dt, timedelta
-from random import random, shuffle
+from random import choice, random, shuffle
 from json import load as _load
 from os import remove
 import webbrowser
@@ -320,7 +320,159 @@ class VoiceAssistant(SpeechWorker):
 
     #games
     def city(self, *args) -> None:
-        ...
+        """
+        Игра в города в классическом понимании:
+        следующее слово в игре должно начинаться на последнюю букву последнего сказанного слова,
+        а все слова в игре должны быть реальными городами. Если последняя буква не произносится,
+        то используется предпоследняя, и так далее до первой произносимой буквы с конца
+        """
+        cancel = ('Отмена', 'Стоп', 'Хватит', 'Достаточно')
+        self.speak(
+            "навык игры в города. подготавливаю данные, хозяин, подождите пожалуйста. если вы захотите прервать игру или у вас не будет вариантов ответа, просто скажите отмена, стоп, хватит или достаточно",
+            'city/prepare-data'
+        )
+        with open('./.citys.txt', 'rt', encoding='utf-8') as file:
+            citys = set(file.read().splitlines())
+            used_citys = set()
+        now_step = 'me' if round(random()) else 'user'
+
+        letter = ''
+        answer = ''
+        end_char = ''
+        user_city = ''
+
+        if now_step == 'me':
+            self.speak("хозяин, по воле случайности первый ход за мной", 'city/my-step-first')
+            letter = chr(choice(tuple(
+                filter(
+                    lambda digit: chr(digit) not in 'ьъ',
+                    tuple(range(1072, 1104)) + (1105,)
+                )
+            )))
+            answer = choice(tuple(filter(
+                lambda city: city.lower().startswith(letter),
+                citys
+            )))
+            citys.discard(answer)
+            used_citys.add(answer)
+            end_char = answer.replace('ь', '').replace('ъ', '')[-1]
+            self.speak(
+                f"мне выпала буква '{letter}', а потому я начну с города {answer}. Вам на '{end_char}'",
+                self.__DYNAMIC
+            )
+            """
+            user_city = self.input().capitalize()
+            if user_city in cancel:
+                self.speak(
+                    "вы решили сдаться на первом же шаге? я разочарована, хозяин. завершение игры",
+                    'city/cancel-on-start'
+                )
+                return
+            while user_city not in citys:
+                if user_city not in used_citys:
+                    self.speak(
+                        f"города {user_city} не обнаружено в моей базе даннных из {len(citys) + len(used_citys)} городов, попробуйте снова",
+                        self.__DYNAMIC
+                    )
+                else:
+                    self.speak(
+                        f"город {user_city} уже был использован в этой игре",
+                        self.__DYNAMIC
+                    )
+                user_city = self.input().capitalize()
+                if user_city in cancel:
+                    self.speak(
+                        "вы решили сдаться на первом же шаге? я разочарована, хозяин. завершение игры",
+                        'city/cancel-on-start'
+                    )
+                    return
+            citys.discard(user_city)
+            used_citys.add(user_city)
+            """
+        else:
+            self.speak(
+                "хозяин, ваш ход первый. назовите город",
+                'city/user-step-first'
+            )
+            user_city = self.input().capitalize()
+            if user_city in cancel:
+                self.speak(
+                    "вы решили сдаться на первом же шаге? я разочарована, хозяин. завершение игры",
+                    'city/cancel-on-start'
+                )
+                return
+            while user_city not in citys:
+                if user_city not in used_citys:
+                    self.speak(
+                        f"города {user_city} не обнаружено в моей базе даннных из {len(citys) + len(used_citys)} городов, попробуйте снова",
+                        self.__DYNAMIC
+                    )
+                else:
+                    self.speak(
+                        f"город {user_city} уже был использован в этой игре",
+                        self.__DYNAMIC
+                    )
+                user_city = self.input().capitalize()
+                if user_city in cancel:
+                    self.speak(
+                        "вы решили сдаться на первом же шаге? я разочарована, хозяин. завершение игры",
+                        'city/cancel-on-start'
+                    )
+                    return
+            citys.discard(user_city)
+            used_citys.add(user_city)
+            end_char = user_city.replace('ь', '').replace('ъ', '')[-1]
+            letter = end_char[::]
+        now_step = 'user' if now_step == 'me' else 'me'
+        while True:
+            if now_step == 'me':
+                self.speak("теперь мой черёд", 'city/next-is-me')
+                answer = choice(tuple(filter(
+                    lambda city: city.lower().startswith(letter),
+                    citys
+                )))
+                end_char = answer.replace('ь', '').replace('ъ', '')[-1]
+                self.speak(
+                    f"мне на букву '{letter}', а потому я начну с города {answer}. Вам на '{end_char}'",
+                    self.__DYNAMIC
+                )
+                citys.discard(answer)
+                used_citys.add(answer)
+            else:
+                self.speak(
+                    "хозяин, теперь ходите вы. каков ваш ответ?",
+                    'city/next-is-user'
+                )
+                user_city = self.input().capitalize()
+                if user_city in cancel:
+                    self.speak(
+                        "я вас поняла, хозяин. завершение игрового навыка",
+                        'city/cancel-game'
+                    )
+                    return
+                while user_city not in citys:
+                    if user_city not in used_citys:
+                        self.speak(
+                            f"города {user_city} не обнаружено в моей базе даннных из {len(citys) + len(used_citys)} городов, попробуйте снова",
+                            self.__DYNAMIC
+                        )
+                    else:
+                        self.speak(
+                            f"город {user_city} уже был использован в этой игре",
+                            self.__DYNAMIC
+                        )
+                    user_city = self.input().capitalize()
+                    if user_city in cancel:
+                        self.speak(
+                            "вы решили сдаться на первом же шаге? я разочарована, хозяин. завершение игры",
+                            'city/cancel-on-start'
+                        )
+                        return
+                citys.discard(user_city)
+                used_citys.add(user_city)
+                end_char = user_city.replace('ь', '').replace('ъ', '')[-1]
+                letter = end_char[::]
+            now_step = 'user' if now_step == 'me' else 'me'
     #endgames
 
     #internet
