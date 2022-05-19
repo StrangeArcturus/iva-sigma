@@ -298,6 +298,18 @@ class VoiceAssistant(SpeechWorker):
             )
     #endgreeting
 
+    #exit
+    def bye(self, *args) -> None:
+        """
+        Завершение работы Яны
+        """
+        self.speak(
+            "хорошо, хозяин, завершаю свою программу. спасибо, что пользуетесь моей помощью и придаёте мне смысл. делайте это почаще, мне приятно",
+            'bye/thanks-and-exit'
+        )
+        exit(0)
+    #endexit
+
     #random
     def toss_coin(self, *args) -> None:
         """
