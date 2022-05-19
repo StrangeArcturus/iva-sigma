@@ -357,38 +357,9 @@ class VoiceAssistant(SpeechWorker):
             used_citys.add(answer)
             end_char = answer.replace('ь', '').replace('ъ', '')[-1]
             self.speak(
-                f"мне выпала буква '{letter}', а потому я начну с города {answer}. Вам на '{end_char}'",
+                f'мне выпала буква "{letter}", а потому я начну с города {answer}. Вам на "{end_char}"',
                 self.__DYNAMIC
             )
-            """
-            user_city = self.input().capitalize()
-            if user_city in cancel:
-                self.speak(
-                    "вы решили сдаться на первом же шаге? я разочарована, хозяин. завершение игры",
-                    'city/cancel-on-start'
-                )
-                return
-            while user_city not in citys:
-                if user_city not in used_citys:
-                    self.speak(
-                        f"города {user_city} не обнаружено в моей базе даннных из {len(citys) + len(used_citys)} городов, попробуйте снова",
-                        self.__DYNAMIC
-                    )
-                else:
-                    self.speak(
-                        f"город {user_city} уже был использован в этой игре",
-                        self.__DYNAMIC
-                    )
-                user_city = self.input().capitalize()
-                if user_city in cancel:
-                    self.speak(
-                        "вы решили сдаться на первом же шаге? я разочарована, хозяин. завершение игры",
-                        'city/cancel-on-start'
-                    )
-                    return
-            citys.discard(user_city)
-            used_citys.add(user_city)
-            """
         else:
             self.speak(
                 "хозяин, ваш ход первый. назовите город",
@@ -401,15 +372,15 @@ class VoiceAssistant(SpeechWorker):
                     'city/cancel-on-start'
                 )
                 return
-            while user_city not in citys:
-                if user_city not in used_citys:
+            while user_city.lower() not in map(lambda city: city.lower(), citys):
+                if user_city.lower() not in map(lambda city: city.lower(), used_citys):
                     self.speak(
                         f"города {user_city} не обнаружено в моей базе даннных из {len(citys) + len(used_citys)} городов, попробуйте снова",
                         self.__DYNAMIC
                     )
                 else:
                     self.speak(
-                        f"город {user_city} уже был использован в этой игре",
+                        f"город {user_city} уже был использован в этой игре. попробуйте снова",
                         self.__DYNAMIC
                     )
                 user_city = self.input().capitalize()
@@ -433,7 +404,7 @@ class VoiceAssistant(SpeechWorker):
                 )))
                 end_char = answer.replace('ь', '').replace('ъ', '')[-1]
                 self.speak(
-                    f"мне на букву '{letter}', а потому я начну с города {answer}. Вам на '{end_char}'",
+                    f'мне на букву "{letter}", а потому я начну с города {answer}. Вам на "{end_char}"',
                     self.__DYNAMIC
                 )
                 citys.discard(answer)
@@ -450,22 +421,22 @@ class VoiceAssistant(SpeechWorker):
                         'city/cancel-game'
                     )
                     return
-                while user_city not in citys:
-                    if user_city not in used_citys:
+                while user_city.lower() not in map(lambda city: city.lower(), citys):
+                    if user_city.lower() not in map(lambda city: city.lower(), used_citys):
                         self.speak(
                             f"города {user_city} не обнаружено в моей базе даннных из {len(citys) + len(used_citys)} городов, попробуйте снова",
                             self.__DYNAMIC
                         )
                     else:
                         self.speak(
-                            f"город {user_city} уже был использован в этой игре",
+                            f"город {user_city} уже был использован в этой игре. попробуйте снова",
                             self.__DYNAMIC
                         )
                     user_city = self.input().capitalize()
                     if user_city in cancel:
                         self.speak(
-                            "вы решили сдаться на первом же шаге? я разочарована, хозяин. завершение игры",
-                            'city/cancel-on-start'
+                            "я вас поняла, хозяин. завершение игрового навыка",
+                            'city/cancel-game'
                         )
                         return
                 citys.discard(user_city)
