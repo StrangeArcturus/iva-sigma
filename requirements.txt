@@ -11,3 +11,4 @@ SQLAlchemy==1.2.19
 termcolor==1.1.0
 vosk==0.3.37
 Wikipedia-API==0.5.4
+translate==3.6.1

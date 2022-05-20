@@ -4,7 +4,6 @@ from random import choice, random, shuffle
 from json import load as _load
 from os import remove
 import webbrowser
-import requests
 import re
 
 from speech_worker import SpeechWorker
@@ -16,7 +15,9 @@ from owner import owner
 from wikipediaapi import Wikipedia, ExtractFormat
 from fuzzywuzzy.fuzz import token_sort_ratio
 from pyowm.weatherapi25.weather import Weather
+from click import clear
 from pyowm import OWM
+from translate import Translator
 
 
 class VoiceAssistant(SpeechWorker):
@@ -46,6 +47,7 @@ class VoiceAssistant(SpeechWorker):
         language='ru',
         extract_format=ExtractFormat.WIKI
     )
+    translator = Translator(from_lang="en", to_lang="ru")
 
     translate_url = "https://translated-mymemory---translation-memory.p.rapidapi.com/api/get"
 
@@ -59,6 +61,7 @@ class VoiceAssistant(SpeechWorker):
             self.scheme = _load(file)
         
         self.over_hear_delta = timedelta(minutes=self.over_hear_minutes)
+        clear()
     
     def __get_times_of_day(self) -> str:
         """
@@ -82,17 +85,7 @@ class VoiceAssistant(SpeechWorker):
         """
         Перевод текста с английского на русский
         """
-        query = {
-            "q": text,
-            "langpair": "en|ru"
-        }
-        headers = {
-            "X-RapidAPI-Host": "translated-mymemory---translation-memory.p.rapidapi.com",
-            "X-RapidAPI-Key": tokens.translate
-        }
-
-        response = requests.request("GET", self.translate_url, headers=headers, params=query)
-        return response.text
+        return self.translator.translate(text)
 
     def execute_command(self, arguments: str) -> None:
         """
@@ -492,15 +485,18 @@ class VoiceAssistant(SpeechWorker):
 
         status: str = weather.detailed_status
         temp: int = round(weather.temperature('celsius')["temp"])
-        wind: int = round(weather.wind()["speed"])
-        
+        wind_speed: int = round(weather.wind()["speed"])
+        wind_deg: int = weather.wind()["deg"]
+
         status = self.__get_translate(status)
 
-        # self.speak(f"текущий статус погоды: {status}", self.__DYNAMIC)
-        # {"message":"You are not subscribed to this API."}
-        # :/
+        self.speak(f"текущий статус погоды: {status}", self.__DYNAMIC)
         self.speak(
-            f"скорость ветра составляет приблизительно {wind} метров в секунду",
+            f"скорость ветра составляет приблизительно {wind_speed} метров в секунду",
+            self.__DYNAMIC
+        )
+        self.speak(
+            f"направление ветра: угол {wind_deg} градусов от северного направления",
             self.__DYNAMIC
         )
         self.speak(
