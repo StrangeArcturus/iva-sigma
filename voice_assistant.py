@@ -61,7 +61,6 @@ class VoiceAssistant(SpeechWorker):
             self.scheme = _load(file)
         
         self.over_hear_delta = timedelta(minutes=self.over_hear_minutes)
-        clear()
     
     def __get_times_of_day(self) -> str:
         """
@@ -115,6 +114,7 @@ class VoiceAssistant(SpeechWorker):
         Цикличное прослушивание окружающей среды,
         управление программой не возвращает
         """
+        clear()
         while True:
             try:
                 if self.started_over_hear:
