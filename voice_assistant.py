@@ -292,6 +292,20 @@ class VoiceAssistant(SpeechWorker):
             )
     #endgreeting
 
+    #datetime
+    def time(self, *args) -> None:
+        """
+        Сообщает нынешнее время
+        """
+        now = dt.now()
+        hour = now.hour
+        minute = now.minute
+        self.speak(
+            f'хозяин, сейчас {hour}:{minute} относительно вашего локального времени',
+            self.__DYNAMIC
+        )
+    #enddatetime
+
     #exit
     def bye(self, *args) -> None:
         """
