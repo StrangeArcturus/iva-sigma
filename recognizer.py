@@ -38,6 +38,8 @@ class Recognizer:
             try:
                 # print(self.translator.get("Listening...", self.translator.current_lang))
                 logger.log("Слушаю...")
+                if config.say_if_hearing:
+                    self.speak("слушаю", 'on-hear')
 
                 audio = self.__recognizer.listen(self.__micro, 5, 5)
                 with open("microphone-results.wav", "wb") as file:

@@ -47,9 +47,10 @@ class VoiceAssistant(SpeechWorker):
         language='ru',
         extract_format=ExtractFormat.WIKI
     )
-    translator = Translator(from_lang="en", to_lang="ru")
-
-    translate_url = "https://translated-mymemory---translation-memory.p.rapidapi.com/api/get"
+    translator = Translator(
+        from_lang="en",
+        to_lang="ru"
+    )
 
     def __init__(self) -> None:
         with open('./assistant.json', 'rt', encoding='utf-8') as file:

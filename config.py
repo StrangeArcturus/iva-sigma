@@ -6,6 +6,7 @@ class __Config:
     log_file: str
     say_errors: bool
     say_warnings: bool
+    say_if_hearing: bool
 
     def __init__(self) -> None:
         with open('./config.json', 'rt', encoding='utf-8') as file:

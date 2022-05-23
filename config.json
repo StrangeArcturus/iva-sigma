@@ -1,5 +1,6 @@
 {
     "log_file": "",
     "say_errors": true,
-    "say_warnings": true
+    "say_warnings": false,
+    "say_if_hearing": true
 }
