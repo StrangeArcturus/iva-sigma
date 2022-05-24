@@ -301,7 +301,20 @@ class VoiceAssistant(SpeechWorker):
         hour = now.hour
         minute = now.minute
         self.speak(
-            f'хозяин, сейчас {hour}:{minute} относительно вашего локального времени',
+            f"хозяин, сейчас {hour}:{minute} относительно вашего локального времени",
+            self.__DYNAMIC
+        )
+    
+    def date(self, *args) -> None:
+        """
+        Сообщает нынешнюю дату
+        """
+        now = dt.now()
+        day = now.day
+        month = now.month
+        year = now.year
+        self.speak(
+            f"хозяин, сегодня у нас с вами {day}.{month}.{year}",
             self.__DYNAMIC
         )
     #enddatetime

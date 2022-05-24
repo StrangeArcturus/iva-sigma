@@ -25,7 +25,7 @@ class Speaker:
         Получение текста и его озвучивание от гугла
         """
         path = self._get_sound_path(label)
-        logger.log(f"Произношу вслух ответ:\n{text}")
+        logger.log(f"Произношу вслух:\n{text}")
         try:
             if path == './cache-sounds/dynamic-speech/1.mp3':
                 gtts = gTTS(text=text, lang="ru")
