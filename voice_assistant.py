@@ -13,11 +13,11 @@ from config import config
 from owner import owner
 
 from wikipediaapi import Wikipedia, ExtractFormat
-from fuzzywuzzy.fuzz import token_sort_ratio
 from pyowm.weatherapi25.weather import Weather
+from fuzzywuzzy.fuzz import token_sort_ratio
+from translate import Translator
 from click import clear
 from pyowm import OWM
-from translate import Translator
 
 
 class VoiceAssistant(SpeechWorker):
