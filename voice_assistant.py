@@ -12,6 +12,9 @@ from tokens import tokens
 from config import config
 from owner import owner
 
+from data import db_session
+from data.notices import Notices
+
 from wikipediaapi import Wikipedia, ExtractFormat
 from pyowm.weatherapi25.weather import Weather
 from fuzzywuzzy.fuzz import token_sort_ratio
@@ -31,6 +34,8 @@ class VoiceAssistant(SpeechWorker):
     recognition_language: str
     over_hear_minutes: float
     scheme: Dict[str, List[str]]
+
+    session: db_session.Session
 
     __DYNAMIC = "dynamic-speech"
 
@@ -76,6 +81,9 @@ class VoiceAssistant(SpeechWorker):
             self.scheme = _load(file)
         
         self.over_hear_delta = timedelta(minutes=self.over_hear_minutes)
+
+        db_session.global_init("db/assistant.db")
+        self.session = db_session.create_session()
     
     def __get_times_of_day(self) -> str:
         """
@@ -100,6 +108,19 @@ class VoiceAssistant(SpeechWorker):
         Перевод текста с английского на русский
         """
         return self.translator.translate(text)
+
+    def __get_request_from_argument(self, argument: __Argument) -> str:
+        """
+        Получение запроса из аргумента при использовании регулярного выражения.
+        Соблюдаем DRY хотя бы тут
+        """
+        request: str = argument.user_command #args[0]
+        patterns: List[str] = argument.triggers #args[1]
+        for pattern in patterns:
+            if re.match(pattern, request):
+                request = re.sub(pattern[:-2], '', request)
+                break
+        return request
 
     def execute_command(self, arguments: str) -> None:
         """
@@ -501,12 +522,7 @@ class VoiceAssistant(SpeechWorker):
         """
         Поиск определения в Википедии
         """
-        request: str = argument.user_command #args[0]
-        patterns: List[str] = argument.triggers #args[1]
-        for pattern in patterns:
-            if re.match(pattern, request):
-                request = re.sub(pattern[:-2], '', request)
-                break
+        request = self.__get_request_from_argument(argument)
         result = self.wiki.page(request).text.split('\n\n')[0]
         result = (
             "простите, хозяин, по всей видимости произошли неполадки во время запроса к википедии, "
@@ -553,17 +569,27 @@ class VoiceAssistant(SpeechWorker):
         """
         Поиск в гугл и открытие браузера
         """
-        request: str = argument.user_command #args[0]
-        patterns: List[str] = argument.triggers #args[1]
-        for pattern in patterns:
-            if re.match(pattern, request):
-                request = re.sub(pattern[:-2], '', request)
-                break
+        request = self.__get_request_from_argument(argument)
         url = f"https://google.com/search?q={request}"
         self.speak(
             f"конечно, хозяин, выполняю поиск в гугле по вашему запросу {request}",
-            "dynamic-speech"
+            self.__DYNAMIC
         )
         webbrowser.get().open(url)
         self.speak(f"в вашем браузере открыты результаты поиска по запросу {request}, хозяин", self.__DYNAMIC)
     #endinternet
+
+    #notice
+    def new_notice_now(self, argument: __Argument) -> None:
+        """
+        Создание долгосрочной заметки сразу из команды
+        """
+        request = self.__get_request_from_argument(argument)
+
+        notice = Notices(text=request)
+        self.session.add(notice)
+        self.session.commit()
+        self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "notice/add-new")
+        count = len(self.session.query(Notices).all())
+        self.speak(f"общее количество заметок в моей базе данных {count}", self.__DYNAMIC)
+    #endnotice
