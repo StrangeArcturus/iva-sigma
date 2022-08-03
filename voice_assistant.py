@@ -112,7 +112,7 @@ class VoiceAssistant(SpeechWorker):
             if not arguments:
                 break
             if arguments.lower() == self.name.lower():
-                self.call(arguments)
+                self.call(self.__Argument(arguments))
                 break
             if arguments.lower() in map(lambda trigger: trigger.lower(), triggers):
                 #self.__getattribute__(skill)(arguments)
@@ -163,7 +163,7 @@ class VoiceAssistant(SpeechWorker):
                 print(e)
     
     #name
-    def call(self, *args) -> None:
+    def call(self, argument: __Argument) -> None:
         """
         Задействуется, если пользователь позвал ассистента по имени
         """
@@ -174,7 +174,7 @@ class VoiceAssistant(SpeechWorker):
         else:
             self.speak("хозяин, я вас уже внимательно слушаю", 'already-carefull')
     
-    def relax(self, *args) -> None:
+    def relax(self, argument: __Argument) -> None:
         """
         Если пользователь попросил отдохнуть
         """
@@ -187,7 +187,7 @@ class VoiceAssistant(SpeechWorker):
     #endname
 
     #thank
-    def thanks(self, *args) -> None:
+    def thanks(self, argument: __Argument) -> None:
         """
         Ответ на благодарение пользователя
         """
@@ -195,7 +195,7 @@ class VoiceAssistant(SpeechWorker):
     #endthank
 
     #greeting
-    def hello(self, *args) -> None:
+    def hello(self, argument: __Argument) -> None:
         """
         Приветствие. По воле случая либо просто "привет", либо с указанием времени суток
         """
@@ -210,21 +210,21 @@ class VoiceAssistant(SpeechWorker):
                     "greeting/from-hello-to-night"
                 )
             elif times_of_day == self.__EARLY:
-                self.early_morning(*args)
+                self.early_morning(argument)
             elif times_of_day == self.__MORNING:
-                self.good_morning(*args)
+                self.good_morning(argument)
             elif times_of_day == self.__DAY:
-                self.good_day(*args)
+                self.good_day(argument)
             elif times_of_day == self.__EVENING:
-                self.good_evening(*args)
+                self.good_evening(argument)
         
-    def early_morning(self, *args) -> None:
+    def early_morning(self, argument: __Argument) -> None:
         """
         Для так называемого, (моего) раннего времени, когда обычно я не бодрствую, но скоро начал бы
         """
         self.speak("что-то вы сегодня рано, хозяин. доброе утро", 'greeting/early-morning')
 
-    def good_morning(self, *args) -> None:
+    def good_morning(self, argument: __Argument) -> None:
         """
         Доброе утро. Но если на момент вызова не утро, то об этом сообщат
         """
@@ -235,7 +235,7 @@ class VoiceAssistant(SpeechWorker):
                 'greeting/from-morning-to-night'
             )
         elif times_of_day == self.__EARLY:
-            self.early_morning(*args)
+            self.early_morning(argument)
         elif times_of_day == self.__MORNING:
             self.speak("доброе утро хозяин", "greeting/good_morning")
         elif times_of_day == self.__DAY:
@@ -246,7 +246,7 @@ class VoiceAssistant(SpeechWorker):
                 'greeting/from-morning-to-evening'
             )
     
-    def good_day(self, *args) -> None:
+    def good_day(self, argument: __Argument) -> None:
         """
         Добрый день. И тут тоже сообщат о несоответствии
         """
@@ -277,7 +277,7 @@ class VoiceAssistant(SpeechWorker):
                 'greeting/from-day-to-evening'
             )        
     
-    def good_evening(self, *args) -> None:
+    def good_evening(self, argument: __Argument) -> None:
         """
         Добрый вечер. Так же, с указанием
         """
@@ -310,7 +310,7 @@ class VoiceAssistant(SpeechWorker):
     #endgreeting
 
     #datetime
-    def time(self, *args) -> None:
+    def time(self, argument: __Argument) -> None:
         """
         Сообщает нынешнее время
         """
@@ -322,7 +322,7 @@ class VoiceAssistant(SpeechWorker):
             self.__DYNAMIC
         )
     
-    def date(self, *args) -> None:
+    def date(self, argument: __Argument) -> None:
         """
         Сообщает нынешнюю дату
         """
@@ -337,7 +337,7 @@ class VoiceAssistant(SpeechWorker):
     #enddatetime
 
     #exit
-    def bye(self, *args) -> None:
+    def bye(self, argument: __Argument) -> None:
         """
         Завершение работы Яны
         """
@@ -349,7 +349,7 @@ class VoiceAssistant(SpeechWorker):
     #endexit
 
     #random
-    def toss_coin(self, *args) -> None:
+    def toss_coin(self, argument: __Argument) -> None:
         """
         Подбросить монетку
         """
@@ -369,7 +369,7 @@ class VoiceAssistant(SpeechWorker):
     #endrandom
 
     #games
-    def city(self, *args) -> None:
+    def city(self, argument: __Argument) -> None:
         """
         Игра в города в классическом понимании:
         следующее слово в игре должно начинаться на последнюю букву последнего сказанного слова,
@@ -497,12 +497,12 @@ class VoiceAssistant(SpeechWorker):
     #endgames
 
     #internet
-    def search_on_wikipedia(self, *args) -> None:
+    def search_on_wikipedia(self, argument: __Argument) -> None:
         """
         Поиск определения в Википедии
         """
-        request: str = args[0]
-        patterns: List[str] = args[1]
+        request: str = argument.user_command #args[0]
+        patterns: List[str] = argument.triggers #args[1]
         for pattern in patterns:
             if re.match(pattern, request):
                 request = re.sub(pattern[:-2], '', request)
@@ -517,7 +517,7 @@ class VoiceAssistant(SpeechWorker):
         self.speak('хозяин, вот что мне удалось найти по вашему запросу в википедии', self.__DYNAMIC)
         self.speak(result, self.__DYNAMIC)
     
-    def get_weather(self, *args) -> None:
+    def get_weather(self, argument: __Argument) -> None:
         """
         Получение прогноза погоды
         """
@@ -549,12 +549,12 @@ class VoiceAssistant(SpeechWorker):
             self.__DYNAMIC
         )
     
-    def search_google(self, *args) -> None:
+    def search_google(self, argument: __Argument) -> None:
         """
         Поиск в гугл и открытие браузера
         """
-        request: str = args[0]
-        patterns: List[str] = args[1]
+        request: str = argument.user_command #args[0]
+        patterns: List[str] = argument.triggers #args[1]
         for pattern in patterns:
             if re.match(pattern, request):
                 request = re.sub(pattern[:-2], '', request)
