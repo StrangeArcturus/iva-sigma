@@ -589,7 +589,20 @@ class VoiceAssistant(SpeechWorker):
         notice = Notices(text=request)
         self.session.add(notice)
         self.session.commit()
-        self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "notice/add-new")
+        self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "notice/added-new")
         count = len(self.session.query(Notices).all())
-        self.speak(f"общее количество заметок в моей базе данных {count}", self.__DYNAMIC)
+        self.speak(f"общее количество заметок в моей базе данных: {count}", self.__DYNAMIC)
+    
+    def new_notice_dialog(self, argument: __Argument) -> None:
+        """
+        Создание долгосрочной заметки во время диалога, а не из команды
+        """
+        self.speak("конечно, хозяин, диктуйте заметку", "notice/get-new-from-dialog")
+        text = self.input()
+        notice = Notices(text=text)
+        self.session.add(notice)
+        self.session.commit()
+        self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "notice/added-new")
+        count = len(self.session.query(Notices).all())
+        self.speak(f"общее количество заметок в моей базе данных: {count}", self.__DYNAMIC)
     #endnotice
