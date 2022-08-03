@@ -52,6 +52,20 @@ class VoiceAssistant(SpeechWorker):
         to_lang="ru"
     )
 
+    class __Argument:
+        """
+        Вспомогательный класс, чтобы упроситить передачу аргументов в навыки
+        и не сопоставлять длину `*args` с командой и триггерами-регексами
+        """
+        user_command: str
+        triggers: List[str] = []
+        triggered: bool = bool(triggers)
+        
+        def __init__(self, command: str, triggers: List[str] = [], triggered: bool = bool(triggers)) -> None:
+            self.user_command = command
+            self.triggers = triggers
+            self.triggered = triggered
+
     def __init__(self) -> None:
         with open('./assistant.json', 'rt', encoding='utf-8') as file:
             owner_obj: Dict[str, str] = _load(file)
@@ -101,13 +115,16 @@ class VoiceAssistant(SpeechWorker):
                 self.call(arguments)
                 break
             if arguments.lower() in map(lambda trigger: trigger.lower(), triggers):
-                self.__getattribute__(skill)(arguments)
+                #self.__getattribute__(skill)(arguments)
+                getattr(self, skill)(self.__Argument(arguments))
                 break
             if any({token_sort_ratio(trigger, arguments) >= 75 for trigger in triggers}):
-                self.__getattribute__(skill)(arguments)
+                #self.__getattribute__(skill)(arguments)
+                getattr(self, skill)(self.__Argument(arguments))
                 break
             if any({re.match(trigger + ' .+' if trigger.endswith(' .+') else trigger, arguments) for trigger in triggers}):
-                self.__getattribute__(skill)(arguments, triggers)
+                #self.__getattribute__(skill)(arguments, triggers)
+                getattr(self, skill)(self.__Argument(arguments, triggers))
                 break
     
     def start_hear(self) -> NoReturn:
