@@ -7,11 +7,10 @@ class Notices(SqlAlchemyBase):
 
     id = sqlalchemy.Column(
         sqlalchemy.Integer,
-        primary_key=True,
-        autoincrement=True
+        autoincrement=True,
+        primary_key=True
     )
 
     text = sqlalchemy.Column(
-        sqlalchemy.String,
-        primary_key=True
+        sqlalchemy.String
     )

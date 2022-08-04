@@ -605,4 +605,46 @@ class VoiceAssistant(SpeechWorker):
         self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "notice/added-new")
         count = len(self.session.query(Notices).all())
         self.speak(f"общее количество заметок в моей базе данных: {count}", self.__DYNAMIC)
+    
+    def read_notices(self, argument: __Argument) -> None:
+        """
+        Чтение и произношение заметок по очереди
+        """
+        self.speak("подготовка и запрос имеющихся заметок, подождите, хозяин", "notice/querying")
+
+        STOP = ("стоп", "хватит", "достаточно")
+        NEXT = ("далее", "следующая")
+        BACK = ("назад", "предыдущая")
+        AGAIN = ("повтори", "ещё раз")
+
+        notices = self.session.query(Notices).all()
+        length = len(notices)
+        index = 0
+        self.speak("начну чтение с начала списка", "notice/get-from-start")
+        if not notices:
+            self.speak("простите, хозяин, но на данный момент заметок не имеется", "notice/db-is-empty")
+        while True:
+            if index >= length:
+                index = 0
+            if index < -length:
+                index = length - 1
+            self.speak(
+                f"заметка номер {index + 1 if index + 1 > 0 else length - index}. Содержание: {notices[index].text}",
+                self.__DYNAMIC
+            )
+            text = self.input()
+            if text in STOP:
+                self.speak("хорошо, хозяин, завершаю чтение заметок", "notice/ending-read")
+                break
+            elif text in NEXT:
+                self.speak("отлично, переходим к следующей записи", "notice/next")
+                index += 1
+                continue
+            elif text in BACK:
+                self.speak("вас поняла, хозяин, переход к предыдущей запичи", "notice/back")
+                index -= 1
+                continue
+            elif text in AGAIN:
+                self.speak("хорошо, повторю текущую запись снова", "notice/again")
+                continue
     #endnotice
