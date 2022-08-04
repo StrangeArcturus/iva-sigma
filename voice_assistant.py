@@ -590,7 +590,8 @@ class VoiceAssistant(SpeechWorker):
         self.session.add(notice)
         self.session.commit()
         self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "notice/added-new")
-        count = len(self.session.query(Notices).all())
+        count = self.session.query(Notices).count()
+        
         self.speak(f"общее количество заметок в моей базе данных: {count}", self.__DYNAMIC)
     
     def new_notice_dialog(self, argument: __Argument) -> None:
@@ -603,19 +604,20 @@ class VoiceAssistant(SpeechWorker):
         self.session.add(notice)
         self.session.commit()
         self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "notice/added-new")
-        count = len(self.session.query(Notices).all())
+        count = self.session.query(Notices).count()
         self.speak(f"общее количество заметок в моей базе данных: {count}", self.__DYNAMIC)
     
     def read_notices(self, argument: __Argument) -> None:
         """
         Чтение и произношение заметок по очереди
         """
-        self.speak("подготовка и запрос имеющихся заметок, подождите, хозяин", "notice/querying")
+        self.speak("подождите, подготовка и запрос имеющихся заметок", "notice/querying")
 
         STOP = ("стоп", "хватит", "достаточно")
         NEXT = ("далее", "следующая")
         BACK = ("назад", "предыдущая")
         AGAIN = ("повтори", "ещё раз")
+        DELETE = ("удали", "удали эту", "удали текущую")
 
         notices = self.session.query(Notices).all()
         length = len(notices)
@@ -628,6 +630,10 @@ class VoiceAssistant(SpeechWorker):
                 index = 0
             if index < -length:
                 index = length - 1
+            if not notices:
+                self.speak("простите, хозяин, но на данный момент заметок не имеется", "notice/db-is-empty")
+                self.speak("завершаю чтение заметок за неимением таковых", "notice/ending-read-when-empty")
+                break
             self.speak(
                 f"заметка номер {index + 1 if index + 1 > 0 else length - index}. Содержание: {notices[index].text}",
                 self.__DYNAMIC
@@ -641,10 +647,18 @@ class VoiceAssistant(SpeechWorker):
                 index += 1
                 continue
             elif text in BACK:
-                self.speak("вас поняла, хозяин, переход к предыдущей запичи", "notice/back")
+                self.speak("вас поняла, хозяин, переход к предыдущей запиcи", "notice/back")
                 index -= 1
                 continue
             elif text in AGAIN:
                 self.speak("хорошо, повторю текущую запись снова", "notice/again")
                 continue
+            elif text in DELETE:
+                self.speak(
+                    f"удаляю заметку номер {index + 1 if index + 1 > 0 else length - index}, подождите",
+                    self.__DYNAMIC
+                )
+                self.session.delete(notices[index])
+                del notices[index]
+                self.speak("запись очищена успешно", "notice/success-delete")
     #endnotice
