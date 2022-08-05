@@ -609,6 +609,7 @@ class VoiceAssistant(SpeechWorker):
             "замени", "замени эту", "замени текущую",
             "перепиши", "перепиши эту", "перепиши текущую"
         )
+        NEW = ("создай", "сделай", "добавь")
 
         notices: List[Notices] = self.session.query(Notices).all()
         index = 0
@@ -667,4 +668,7 @@ class VoiceAssistant(SpeechWorker):
                 notices[index].text = text
                 self.session.commit()
                 self.speak("запись обновлена успешно", "notices/success-update")
+            elif text in NEW:
+                self.new_notice(argument)
+                notices: List[Notices] = self.session.query(Notices).all()
     #endnotice
