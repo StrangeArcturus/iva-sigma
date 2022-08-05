@@ -618,24 +618,31 @@ class VoiceAssistant(SpeechWorker):
         BACK = ("назад", "предыдущая")
         AGAIN = ("повтори", "ещё раз")
         DELETE = ("удали", "удали эту", "удали текущую")
+        UPDATE = (
+            "обнови", "обнови эту", "обнови текущую",
+            "замени", "замени эту", "замени текущую",
+            "перепиши", "перепиши эту", "перепиши текущую"
+        )
 
-        notices = self.session.query(Notices).all()
-        length = len(notices)
+        notices: List[Notices] = self.session.query(Notices).all()
         index = 0
+
+        get_index = lambda: index if index + 1 > 0 else len(notices) - index
+
         self.speak("начну чтение с начала списка", "notice/get-from-start")
         if not notices:
             self.speak("простите, хозяин, но на данный момент заметок не имеется", "notice/db-is-empty")
         while True:
-            if index >= length:
+            if index >= len(notices):
                 index = 0
-            if index < -length:
-                index = length - 1
+            if index < -len(notices):
+                index = len(notices) - 1
             if not notices:
                 self.speak("простите, хозяин, но на данный момент заметок не имеется", "notice/db-is-empty")
                 self.speak("завершаю чтение заметок за неимением таковых", "notice/ending-read-when-empty")
                 break
             self.speak(
-                f"заметка номер {index + 1 if index + 1 > 0 else length - index}. Содержание: {notices[index].text}",
+                f"заметка номер {get_index()}. Содержание: {notices[index].text}",
                 self.__DYNAMIC
             )
             text = self.input()
@@ -655,10 +662,23 @@ class VoiceAssistant(SpeechWorker):
                 continue
             elif text in DELETE:
                 self.speak(
-                    f"удаляю заметку номер {index + 1 if index + 1 > 0 else length - index}, подождите",
+                    f"удаляю заметку номер {get_index()}, подождите",
                     self.__DYNAMIC
                 )
-                self.session.delete(notices[index])
+                self.session.query(Notices).filter(Notices.id == notices[index].id).delete()
+                self.session.commit()
                 del notices[index]
                 self.speak("запись очищена успешно", "notice/success-delete")
+            elif text in UPDATE:
+                self.speak(
+                    f"задача понятна. хозяин, диктуйте новое содержимое заме́тки под номером {get_index()}",
+                    self.__DYNAMIC
+                )
+                text = self.input()
+                self.session.query(Notices).filter(Notices.id == notices[index].id).update({
+                    Notices.text: text
+                })
+                notices[index].text = text
+                self.session.commit()
+                self.speak("запись обновлена успешно", "notices/success-update")
     #endnotice
