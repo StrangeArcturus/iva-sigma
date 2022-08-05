@@ -580,21 +580,7 @@ class VoiceAssistant(SpeechWorker):
     #endinternet
 
     #notice
-    def new_notice_now(self, argument: __Argument) -> None:
-        """
-        Создание долгосрочной заметки сразу из команды
-        """
-        request = self.__get_request_from_argument(argument)
-
-        notice = Notices(text=request)
-        self.session.add(notice)
-        self.session.commit()
-        self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "notice/added-new")
-        count = self.session.query(Notices).count()
-        
-        self.speak(f"общее количество заметок в моей базе данных: {count}", self.__DYNAMIC)
-    
-    def new_notice_dialog(self, argument: __Argument) -> None:
+    def new_notice(self, argument: __Argument) -> None:
         """
         Создание долгосрочной заметки во время диалога, а не из команды
         """
