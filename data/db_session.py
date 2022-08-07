@@ -3,11 +3,13 @@ import sqlalchemy.orm as orm
 from sqlalchemy.orm import Session
 import sqlalchemy.ext.declarative as dec
 
-from typing import Any, Callable, Union
+from typing import Any, Union
+
 
 SqlAlchemyBase = dec.declarative_base()
 
-__factory: Union[Session, Callable, None, Any] = None
+__factory: Any = None
+
 
 def global_init(db_file: str) -> None:
     global __factory
@@ -29,6 +31,6 @@ def global_init(db_file: str) -> None:
     SqlAlchemyBase.metadata.create_all(engine)
 
 
-def create_session() -> Union[Session, Callable, None, Any]:
+def create_session() -> Union[Session, Any]:
     global __factory
     return __factory()
