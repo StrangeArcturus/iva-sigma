@@ -42,6 +42,10 @@ class VoiceAssistant(SpeechWorker):
     started_over_hear: Optional[dt] = None
     is_over_hear: bool = False
 
+    is_sleeping: bool = False
+    started_sleeping: Optional[dt] = None
+    sleeping_interval: Optional[timedelta] = None
+
     __MORNING = "MORNING"
     __DAY = "DAY"
     __EVENING = "EVENING"
@@ -156,6 +160,7 @@ class VoiceAssistant(SpeechWorker):
         clear()
         while True:
             try:
+                self._check_on_sleep()
                 if self.started_over_hear:
                     if dt.now() - self.started_over_hear >= self.over_hear_delta:
                         self.is_over_hear = False
@@ -542,7 +547,7 @@ class VoiceAssistant(SpeechWorker):
             self.__DYNAMIC
         )
         city = owner.home_city
-        weather: Weather = OWM(tokens.OWM).weather_manager().weather_at_place(city).weather
+        weather: Weather = OWM(tokens.OWM).weather_manager().weather_at_place(city).weather # type: ignore
 
         status: str = weather.detailed_status
         temp: int = round(weather.temperature('celsius')["temp"])
@@ -578,6 +583,48 @@ class VoiceAssistant(SpeechWorker):
         webbrowser.get().open(url)
         self.speak(f"в вашем браузере открыты результаты поиска по запросу {request}, хозяин", self.__DYNAMIC)
     #endinternet
+
+    #sleep
+    def sleep(self, argument: __Argument) -> None:
+        """
+        Переход в сон по команде
+        """
+        self.speak("вас поняла, на сколько минут мне уснуть?", "sleep/ask-minutes")
+        text = re.sub(r"\D", "", self.input())
+        minutes = int(text)
+        self.speak("хорошо, хозяин, подготовка ко сну", "sleep/getting-sleep")
+        self.started_sleeping = dt.now()
+        self.sleeping_interval = timedelta(minutes=minutes)
+        when_awake = self.started_sleeping + self.sleeping_interval
+        awake_hour = when_awake.hour
+        awake_minute = when_awake.minute
+        self.speak(f"перехожу в сон до {awake_hour}:{awake_minute} или до пробуждения вами", self.__DYNAMIC)
+        self.is_sleeping = True
+        self._say_if_hearing = False
+    
+    def _check_on_sleep(self) -> None:
+        """
+        Проверка на состояние сна
+        """
+        if not self.is_sleeping:
+            return
+        if not ((dt.now()) >= (self.started_sleeping + self.sleeping_interval)): # type: ignore
+            return
+        self.awake(self.__Argument(""))
+    
+    def awake(self, argument: __Argument) -> None:
+        """
+        Пробуждение по команде или по истечение времени
+        """
+        if argument.user_command:
+            self.speak("а? да-да, я здесь и готова работать", "sleep/awake-from-user")
+        else:
+            self.speak("хозяин, по истечение заданного времени я проснулась и готова к работе", "sleep/awake-from-self")
+        self.sleeping_interval = None
+        self.started_sleeping = None
+        self.is_sleeping = False
+        self._say_if_hearing = config.say_if_hearing
+    #endsleep
 
     #notice
     def new_notice(self, argument: __Argument) -> None:
@@ -666,7 +713,7 @@ class VoiceAssistant(SpeechWorker):
                 self.session.query(Notices).filter(Notices.id == notices[index].id).update({
                     Notices.text: text
                 })
-                notices[index].text = text
+                notices[index].text = text # type: ignore
                 self.session.commit()
                 self.speak("запись обновлена́ успешно", "notice/success-update")
             elif text in NEW:

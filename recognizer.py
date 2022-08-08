@@ -17,6 +17,8 @@ class Recognizer:
     __recognizer = sr.Recognizer()
     __micro = sr.Microphone()
 
+    _say_if_hearing = config.say_if_hearing
+
     def speak(self, text: str, path: str) -> str:
         ...
     
@@ -38,7 +40,7 @@ class Recognizer:
             try:
                 # print(self.translator.get("Listening...", self.translator.current_lang))
                 logger.log("Слушаю...")
-                if config.say_if_hearing:
+                if self._say_if_hearing:
                     self.speak("слушаю", 'on-hear')
 
                 audio = self.__recognizer.listen(self.__micro, 5, 5)
