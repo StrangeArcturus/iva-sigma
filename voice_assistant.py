@@ -35,6 +35,8 @@ class VoiceAssistant(SpeechWorker):
     over_hear_minutes: float
     scheme: Dict[str, List[str]]
 
+    daemons: List[str]
+
     session: db_session.Session
 
     __DYNAMIC = "dynamic-speech"
@@ -160,27 +162,24 @@ class VoiceAssistant(SpeechWorker):
         clear()
         while True:
             try:
-                self._check_on_sleep()
+                for title in self.daemons:
+                    getattr(self, '_' + title)()
                 if self.started_over_hear:
-                    if dt.now() - self.started_over_hear >= self.over_hear_delta:
+                    if dt.now() >= self.started_over_hear + self.over_hear_delta:
                         self.is_over_hear = False
                         self.started_over_hear = None
                 owner_speech = self.input()
-                logger.log(f'Произнесено:\n{owner_speech}')
                 if not self.is_over_hear:
                     if not owner_speech.startswith(self.name.lower()) and not owner_speech.endswith(self.name.lower()):
                         continue
-                    # owner_speech = owner_speech.replace(self.name.lower(), '', 1)
                     if owner_speech.lower() != self.name.lower():
                         if owner_speech.startswith(self.name.lower()):
                             owner_speech = (owner_speech[len(self.name):]).strip()
                         if owner_speech.endswith(self.name.lower()):
                             owner_speech = (owner_speech[:-len(self.name)]).strip()
                 remove('microphone-results.wav')
-                words = owner_speech.split()
-                # command, *arguments = words
                 command = owner_speech
-                self.execute_command(command)# , arguments)
+                self.execute_command(command)
             except Exception as e:
                 msg = "Упс, возникла ошибка..."
                 if config.say_errors:
@@ -199,7 +198,7 @@ class VoiceAssistant(SpeechWorker):
             self.speak("да, хозяин, слушаю вас внимательно", 'carefull-hear')
         else:
             self.speak("хозяин, я вас уже внимательно слушаю", 'already-carefull')
-    
+
     def relax(self, argument: __Argument) -> None:
         """
         Если пользователь попросил отдохнуть
@@ -604,7 +603,8 @@ class VoiceAssistant(SpeechWorker):
     
     def _check_on_sleep(self) -> None:
         """
-        Проверка на состояние сна
+        Проверка на состояние сна.
+        Приватный метод-демон
         """
         if not self.is_sleeping:
             return

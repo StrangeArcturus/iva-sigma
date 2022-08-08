@@ -124,4 +124,6 @@ class Recognizer:
         return recognized_data
 
     def input(self) -> str:
-        return self.record_and_recognize_audio().lower()
+        result = self.record_and_recognize_audio().lower()
+        logger.log(f'Произнесено:\n{result}')
+        return result
