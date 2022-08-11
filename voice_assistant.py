@@ -164,11 +164,16 @@ class VoiceAssistant(SpeechWorker):
             try:
                 for title in self.daemons:
                     getattr(self, '_' + title)()
+                owner_speech = self.input()
+                if self.is_sleeping:
+                    if owner_speech.replace(self.name.lower(), "").strip() not in self.scheme["awake"]:
+                        continue
+                    self.awake(self.__Argument(owner_speech))
+                    continue
                 if self.started_over_hear:
                     if dt.now() >= self.started_over_hear + self.over_hear_delta:
                         self.is_over_hear = False
                         self.started_over_hear = None
-                owner_speech = self.input()
                 if not self.is_over_hear:
                     if not owner_speech.startswith(self.name.lower()) and not owner_speech.endswith(self.name.lower()):
                         continue
@@ -597,7 +602,7 @@ class VoiceAssistant(SpeechWorker):
         when_awake = self.started_sleeping + self.sleeping_interval
         awake_hour = when_awake.hour
         awake_minute = when_awake.minute
-        self.speak(f"перехожу в сон до {awake_hour}:{awake_minute} или до пробуждения вами", self.__DYNAMIC)
+        self.speak(f"перехожу в сон до {awake_hour:02}:{awake_minute:02} или до пробуждения вами", self.__DYNAMIC)
         self.is_sleeping = True
         self._say_if_hearing = False
     
@@ -616,6 +621,9 @@ class VoiceAssistant(SpeechWorker):
         """
         Пробуждение по команде или по истечение времени
         """
+        if not self.is_sleeping:
+            self.speak("но хозяин, я же не сплю", "sleep/already-awake")
+            return
         if argument.user_command:
             self.speak("а? да-да, я здесь и готова работать", "sleep/awake-from-user")
         else:
