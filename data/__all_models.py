@@ -1,1 +1,1 @@
-from . import notices
+from . import notes

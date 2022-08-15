@@ -13,7 +13,7 @@ from config import config
 from owner import owner
 
 from data import db_session
-from data.notices import Notices
+from data.notes import Notes
 
 from wikipediaapi import Wikipedia, ExtractFormat
 from pyowm.weatherapi25.weather import Weather
@@ -634,25 +634,25 @@ class VoiceAssistant(SpeechWorker):
         self._say_if_hearing = config.say_if_hearing
     #endsleep
 
-    #notice
-    def new_notice(self, argument: __Argument) -> None:
+    #note
+    def new_note(self, argument: __Argument) -> None:
         """
         Создание долгосрочной заметки во время диалога, а не из команды
         """
-        self.speak("конечно, хозяин, диктуйте заметку", "notice/get-new-from-dialog")
+        self.speak("конечно, хозяин, диктуйте заметку", "note/get-new-from-dialog")
         text = self.input()
-        notice = Notices(text=text)
-        self.session.add(notice)
+        note = Notes(text=text)
+        self.session.add(note)
         self.session.commit()
-        self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "notice/added-new")
-        count = self.session.query(Notices).count()
+        self.speak("ваша заметка без срока хранения добавлена в базу данных, хозяин", "note/added-new")
+        count = self.session.query(Notes).count()
         self.speak(f"общее количество заметок в моей базе данных: {count}", self.__DYNAMIC)
     
-    def read_notices(self, argument: __Argument) -> None:
+    def read_notes(self, argument: __Argument) -> None:
         """
         Чтение и произношение заметок по очереди
         """
-        self.speak("подождите, подготовка и запрос имеющихся заметок", "notice/querying")
+        self.speak("подождите, подготовка и запрос имеющихся заметок", "note/querying")
 
         STOP = ("стоп", "хватит", "достаточно")
         NEXT = ("далее", "следующая")
@@ -666,65 +666,65 @@ class VoiceAssistant(SpeechWorker):
         )
         NEW = ("создай", "сделай", "добавь")
 
-        notices: List[Notices] = self.session.query(Notices).all()
+        notes: List[Notes] = self.session.query(Notes).all()
         index = 0
 
-        self.speak("начну чтение с начала списка", "notice/get-from-start")
-        if not notices:
-            self.speak("простите, хозяин, но на данный момент заметок не имеется", "notice/db-is-empty")
+        self.speak("начну чтение с начала списка", "note/get-from-start")
+        if not notes:
+            self.speak("простите, хозяин, но на данный момент заметок не имеется", "note/db-is-empty")
         while True:
-            if index >= len(notices):
+            if index >= len(notes):
                 index = 0
             """
-            if index < -len(notices):
-                index = len(notices) - 1
+            if index < -len(notes):
+                index = len(notes) - 1
             """
-            index %= len(notices)
-            if not notices:
-                self.speak("простите, хозяин, но на данный момент заметок не имеется", "notice/db-is-empty")
-                self.speak("завершаю чтение заметок за неимением таковых", "notice/ending-read-when-empty")
+            index %= len(notes)
+            if not notes:
+                self.speak("простите, хозяин, но на данный момент заметок не имеется", "note/db-is-empty")
+                self.speak("завершаю чтение заметок за неимением таковых", "note/ending-read-when-empty")
                 break
             self.speak(
-                f"заметка номер {index + 1}. Содержание: {notices[index].text}",
+                f"заметка номер {index + 1}. Содержание: {notes[index].text}",
                 self.__DYNAMIC
             )
             text = self.input()
             if text in STOP:
-                self.speak("хорошо, хозяин, завершаю чтение заметок", "notice/ending-read")
+                self.speak("хорошо, хозяин, завершаю чтение заметок", "note/ending-read")
                 break
             elif text in NEXT:
-                self.speak("отлично, переходим к следующей записи", "notice/next")
+                self.speak("отлично, переходим к следующей записи", "note/next")
                 index += 1
                 continue
             elif text in BACK:
-                self.speak("вас поняла, хозяин, переход к предыдущей запиcи", "notice/back")
+                self.speak("вас поняла, хозяин, переход к предыдущей запиcи", "note/back")
                 index -= 1
                 continue
             elif text in AGAIN:
-                self.speak("хорошо, повторю текущую запись снова", "notice/again")
+                self.speak("хорошо, повторю текущую запись снова", "note/again")
                 continue
             elif text in DELETE:
                 self.speak(
                     f"удаляю заметку номер {index + 1}, подождите",
                     self.__DYNAMIC
                 )
-                self.session.query(Notices).filter(Notices.id == notices[index].id).delete()
+                self.session.query(Notes).filter(Notes.id == notes[index].id).delete()
                 self.session.commit()
-                del notices[index]
-                self.speak("запись очищена успешно", "notice/success-delete")
+                del notes[index]
+                self.speak("запись очищена успешно", "note/success-delete")
             elif text in UPDATE:
                 self.speak(
                     f"задача понятна. хозяин, диктуйте новое содержимое заме́тки под номером {index + 1}",
                     self.__DYNAMIC
                 )
                 text = self.input()
-                self.session.query(Notices).filter(Notices.id == notices[index].id).update({
-                    Notices.text: text
+                self.session.query(Notes).filter(Notes.id == notes[index].id).update({
+                    Notes.text: text
                 })
-                notices[index].text = text # type: ignore
+                notes[index].text = text # type: ignore
                 self.session.commit()
-                self.speak("запись обновлена́ успешно", "notice/success-update")
+                self.speak("запись обновлена́ успешно", "note/success-update")
             elif text in NEW:
-                self.new_notice(argument)
-                notices: List[Notices] = self.session.query(Notices).all()
-    #endnotice
+                self.new_note(argument)
+                notes: List[Notes] = self.session.query(Notes).all()
+    #endnote
