@@ -2,7 +2,7 @@ import sqlalchemy
 from .db_session import SqlAlchemyBase
 
 
-class Notices(SqlAlchemyBase):
+class Notes(SqlAlchemyBase):
     __tablename__ = "notices"
 
     id = sqlalchemy.Column(
