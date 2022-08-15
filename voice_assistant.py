@@ -1,4 +1,4 @@
-from typing import Dict, List, NoReturn, Optional
+from typing import Dict, List, NoReturn, Optional, Tuple
 from datetime import datetime as dt, timedelta
 from random import choice, random, shuffle
 from json import load as _load
@@ -14,6 +14,7 @@ from owner import owner
 
 from data import db_session
 from data.notes import Notes
+from data.notices import Notices
 
 from wikipediaapi import Wikipedia, ExtractFormat
 from pyowm.weatherapi25.weather import Weather
@@ -728,3 +729,60 @@ class VoiceAssistant(SpeechWorker):
                 self.new_note(argument)
                 notes: List[Notes] = self.session.query(Notes).all()
     #endnote
+
+    #notice
+    def new_notice(self, argument: __Argument) -> None:
+        """
+        Создание напоминания посредством диалога
+        """
+        def processing_date(date: str) -> dt:
+            """
+            Обработка даты из строки и возврат объекта datetime
+            """
+            months = {
+                re.compile(r"январ(ь|я)"): 1,
+                re.compile(r"феврал(ь|я)"): 2,
+                re.compile(r"март(а)?"): 3,
+                re.compile(r"апрел(ь|я)"): 4,
+                re.compile(r"ма(й|я)"): 5,
+                re.compile(r"июн(ь|я)"): 6,
+                re.compile(r"июл(ь|я)"): 7,
+                re.compile(r"август(а)?"): 8,
+                re.compile(r"сентябр(ь|я)"): 9,
+                re.compile(r"октябр(ь|я)"): 10,
+                re.compile(r"ноябр(ь|я)"): 11,
+                re.compile(r"декабр(ь|я)"): 12
+            }
+            day, month = date.split()
+            month_num = months[tuple(filter(lambda pattern: pattern.match(month), months.keys()))[0]]
+            return dt(dt.now().year, month_num, int(day))
+
+        def processing_time(time: str) -> Tuple[int, int]:
+            """
+            Обработка времени из строки и возврат кортежа (час, минута)
+            """
+            return tuple(map(int, time.split(":")))
+
+        def processing_dt(date: dt, time: Tuple[int, int]) -> dt:
+            """
+            Совмещение атрибутов из двух функций выше в один объект datetime
+            """
+            return date.replace(hour=time[0], minute=time[1])
+
+        self.speak("вас поняла, следуйте инструкциям, хозяин", "notice/get-new-from-dialog")
+        self.speak("пожалуйста, сообщите описание для напоминания", "notice/get-text")
+        text = self.input()
+        self.speak("дату напоминания в формате число месяц", "notice/get-date")
+        date = processing_date(self.input())
+        self.speak("а также время в формате N часов N минут", "notice/get-time")
+        time = processing_time(self.input())
+        self.speak("отлично, хозяин, начинаю обработку и сохранение информации", "notice/saving")
+
+        datetime = processing_dt(date, time)
+        notice = Notices(text=text, datetime=datetime)
+        self.session.add(notice)
+        self.session.commit()
+        self.speak("напоминание успешно добавлено в базу данных", "notice/added-new")
+        count = self.session.query(Notices).count()
+        self.speak(f"предстоящих напоминаний: {count}", self.__DYNAMIC)
+    #endnotice

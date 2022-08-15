@@ -2,8 +2,8 @@ import sqlalchemy
 from .db_session import SqlAlchemyBase
 
 
-class Notes(SqlAlchemyBase):
-    __tablename__ = "notes"
+class Notices(SqlAlchemyBase):
+    __tablename__ = "notices"
 
     id = sqlalchemy.Column(
         sqlalchemy.Integer,
@@ -13,4 +13,8 @@ class Notes(SqlAlchemyBase):
 
     text = sqlalchemy.Column(
         sqlalchemy.String
+    )
+
+    datetime = sqlalchemy.Column(
+        sqlalchemy.DateTime
     )
