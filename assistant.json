@@ -5,6 +5,7 @@
     "recognition_language": "en",
     "over_hear_minutes": 10,
     "daemons": [
-        "check_on_sleep"
+        "check_on_sleep",
+        "check_notices"
     ]
 }

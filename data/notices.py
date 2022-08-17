@@ -18,3 +18,8 @@ class Notices(SqlAlchemyBase):
     datetime = sqlalchemy.Column(
         sqlalchemy.DateTime
     )
+
+    status = sqlalchemy.Column(
+        sqlalchemy.String,
+        default="created"
+    )

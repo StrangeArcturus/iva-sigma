@@ -49,6 +49,8 @@ class VoiceAssistant(SpeechWorker):
     started_sleeping: Optional[dt] = None
     sleeping_interval: Optional[timedelta] = None
 
+    last_notice_check: Optional[dt] = None
+
     __MORNING = "MORNING"
     __DAY = "DAY"
     __EVENING = "EVENING"
@@ -785,4 +787,69 @@ class VoiceAssistant(SpeechWorker):
         self.speak("напоминание успешно добавлено в базу данных", "notice/added-new")
         count = self.session.query(Notices).count()
         self.speak(f"предстоящих напоминаний: {count}", self.__DYNAMIC)
+    
+    def _check_notices(self) -> None:
+        """
+        Проверка актуальных напоминаний и уведомление, если пора напомнить.
+        Приватный метод-демон
+        """
+        filters = {
+            "created",
+            "15 min",
+            "10 min",
+            "5 min",
+            "late"
+        }
+        if not self.last_notice_check:
+            self.last_notice_check = dt.now()
+        if (dt.now() < self.last_notice_check + timedelta(minutes=3)): return # type: ignore
+        notices: List[Notices] = self.session.query(Notices).filter(Notices.status != "late").all()
+        for notice in notices:
+            now = dt.now()
+
+            if notice.status == "late":
+                if (now - notice.datetime).days >= 1: # type: ignore
+                    self.session.query(Notices).filter(Notices.id == notice.id).delete()
+                    self.session.commit()
+                continue
+
+            text = notice.text
+            datetime = notice.datetime
+            h_m = datetime.strftime("%H:%M")
+            if now >= datetime:
+                self.session.query(Notices).filter(Notices.id == notice.id).update({
+                    Notices.status: "late"
+                })
+                self.speak(
+                    f"хозяин, в ваших планах было {text}, но вы немного не доглядели время, сейчас уже {h_m}",
+                    self.__DYNAMIC
+                )
+                self.session.commit()
+                continue
+            differece: int = (datetime - now).total_seconds() // 5 # type: ignore
+            if differece <= 5:
+                self.session.query(Notices).filter(Notices.id == notice.id).update({
+                    Notices.status: "5 min"
+                })
+                self.speak(
+                    f"хозяин, у вас в планах {text} на {datetime}. Поторопитесь",
+                    self.__DYNAMIC
+                )
+            elif differece <= 10:
+                self.session.query(Notices).filter(Notices.id == notice.id).update({
+                    Notices.status: "10 min"
+                })
+                self.speak(
+                    f"напоминаю: примерно через 10 минут у вас {text}, хозяин",
+                    self.__DYNAMIC
+                )
+            elif differece <= 15:
+                self.session.query(Notices).filter(Notices.id == notice.id).update({
+                    Notices.status: "15 min"
+                })
+                self.speak(
+                    f"хозяин, где-то через 15 минут по плану {text}",
+                    self.__DYNAMIC
+                )
+            self.session.commit()
     #endnotice
