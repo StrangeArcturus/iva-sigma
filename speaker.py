@@ -1,64 +1,71 @@
-from pyttsx3 import init
+import torch
 
-from gtts import gTTS, gTTSError
-from playsound import playsound
+import time
 
-from my_logger import logger
-from config import config
+import sounddevice as sd
 
-from os.path import exists, isfile
+"""
+from num2words import num2words
+import re
+"""
 
 
 class Speaker:
     """
     Отвечает за генерацию речи из текста
     """
-    __tts_engine = init()
-    __tts_engine.setProperty('rate', 150)
-    __tts_engine.setProperty("voice", "russian")
+    status = "pass"
+
+    language = "ru"
+    model_id = "v3_1_ru"
+    sample_rate = 48_000
+    speaker = "kseniya" # aidar, baya, kseniya, xenia, random
+    put_accent = True
+    put_yo = True
+    tts_device = torch.device('cpu')
+
+    tts_model, _ = torch.hub.load(
+        repo_or_dir="snakers4/silero-models",
+        model="silero_tts",
+        language=language,
+        speaker=model_id
+    )
+
+    tts_model.to(tts_device)
 
     def _get_sound_path(self, title: str) -> str:
         ...
 
+    """
+    def _num2word(self, string: str) -> str:
+        while re.fullmatch(r"\d+", string):
+            if re.fullmatch(r"\d{1,2}:\d{1,2}", string):
+                string = re.sub(
+                    r"\d{1,2}:\d{1,2}",
+                    lambda match: f"{num2words((words := match.group(0))[0], lang='ru')} часов {num2words(words[1], lang='ru')} минут",
+                    string
+                )
+            string = re.sub(r"\d+", lambda match: str(num2words(match.group(0), lang="ru")), string)
+        return string
+    """
+    
     def speak(self, text: str, label: str) -> str:
-        """
-        Получение текста и его озвучивание от гугла
-        """
-        path = self._get_sound_path(label)
-        logger.log(f"Произношу вслух:\n{text}")
-        try:
-            if path == './cache-sounds/dynamic-speech/1.mp3':
-                gtts = gTTS(text=text, lang="ru")
-                gtts.save(path)
-                playsound(path)
-                return text
-            if exists(path):
-                if isfile(path):
-                    playsound(path)
-                    return text
-            else:
-                gtts = gTTS(text=text, lang="ru")
-                gtts.save(path)
-                playsound(path)
-                return text
-        except gTTSError:
-            msg = "Что-то произошло с генерацией речи google..."
-            if config.say_errors:
-                self.speak(msg, 'google-generation-trouble')
-            logger.error(msg)
-        except:
-            self.offline_speak(text)
-        finally:
-            return text
-        
-    def offline_speak(self, text: str) -> str:
-        try:
-            self.__tts_engine.say(text)
-            self.__tts_engine.runAndWait()
-        except:
-            msg = "Что-то пошло не так с генерацией речи оффлайн..."
-            if config.say_errors:
-                self.speak(msg, 'offline-generation-trouble')
-            logger.error(msg)
-        finally:
-            return text
+        #text = self._num2word(text)
+        while self.status != "pass":
+            pass
+        self.status = "play"
+        print(f"Произношу:\n{text}")
+        audio = self.tts_model.apply_tts(
+            text=text,
+            speaker=self.speaker,
+            sample_rate=self.sample_rate,
+            put_accent=self.put_accent,
+            put_yo=self.put_yo
+        )
+
+        sd.play(audio, self.sample_rate)
+        time.sleep(len(audio) / self.sample_rate)
+        sd.stop()
+
+        self.status = "pass"
+        return text
