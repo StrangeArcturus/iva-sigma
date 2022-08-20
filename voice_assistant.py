@@ -2,7 +2,7 @@ from typing import Dict, List, NoReturn, Optional, Tuple
 from datetime import datetime as dt, timedelta
 from random import choice, random, shuffle
 from json import load as _load
-from os import remove
+#from os import remove
 import webbrowser
 import re
 

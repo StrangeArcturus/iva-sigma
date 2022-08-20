@@ -23,6 +23,7 @@ class Speaker:
     put_accent = True
     put_yo = True
     tts_device = torch.device('cpu')
+    torch.set_num_threads(4)
 
     tts_model, _ = torch.hub.load(
         repo_or_dir="snakers4/silero-models",
