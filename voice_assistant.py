@@ -185,7 +185,6 @@ class VoiceAssistant(SpeechWorker):
                             owner_speech = (owner_speech[len(self.name):]).strip()
                         if owner_speech.endswith(self.name.lower()):
                             owner_speech = (owner_speech[:-len(self.name)]).strip()
-                remove('microphone-results.wav')
                 command = owner_speech
                 self.execute_command(command)
             except Exception as e:
