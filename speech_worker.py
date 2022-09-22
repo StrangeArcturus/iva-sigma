@@ -18,10 +18,10 @@ class SpeechWorker(Speaker, Recognizer):
         а также для экономии трафика без применения оффлайн озвучки
         """
         if title == "dynamic-speech":
-            path = './cache-sounds/dynamic-speech'
+            path = './cache-tensors/dynamic-speech'
             makedirs(path, exist_ok=True)
-            return f'{path}/1.mp3'
-        path_in_cache = f'./cache-sounds/{title}'
+            return f'{path}/1.tensor'
+        path_in_cache = f'./cache-tensors/{title}'
         if exists(path_in_cache):
             files = list(filter(isfile, listdir(path_in_cache)))
             if files:
@@ -30,7 +30,7 @@ class SpeechWorker(Speaker, Recognizer):
                 else:
                     return f'{path_in_cache}/{files[0]}'
             else:
-                return f'{path_in_cache}/1.mp3'
+                return f'{path_in_cache}/1.tensor'
         else:
             makedirs(path_in_cache, exist_ok=True)
-            return f'{path_in_cache}/1.mp3'
+            return f'{path_in_cache}/1.tensor'

@@ -2,6 +2,10 @@ import torch
 
 import time
 import re
+from os.path import exists, isfile
+
+from config import config
+from my_logger import logger
 
 from num2words import num2words
 
@@ -71,23 +75,61 @@ class Speaker:
             string = digit_replacer(string)
         return string
     
+    def _play_tensor(self, tensor: torch.Tensor) -> None:
+        sd.play(tensor, self.sample_rate)
+        time.sleep(len(tensor) / self.sample_rate)
+        sd.stop()
+
     def speak(self, text: str, label: str) -> str:
         text = self._num2word(text)
+        path = self._get_sound_path(label)
         while self.status != "pass":
             pass
         self.status = "play"
-        print(f"Произношу:\n{text}")
-        audio = self.tts_model.apply_tts(
-            text=text,
-            speaker=self.speaker,
-            sample_rate=self.sample_rate,
-            put_accent=self.put_accent,
-            put_yo=self.put_yo
-        )
 
-        sd.play(audio, self.sample_rate)
-        time.sleep(len(audio) / self.sample_rate)
-        sd.stop()
+        logger.log(f"Произношу:\n{text}")
 
-        self.status = "pass"
-        return text
+        try:
+            if "dynamic-speech" in path:
+                audio: torch.Tensor = self.tts_model.apply_tts(
+                    text=text,
+                    speaker=self.speaker,
+                    sample_rate=self.sample_rate,
+                    put_accent=self.put_accent,
+                    put_yo=self.put_yo
+                )
+
+                self._play_tensor(audio)
+
+                self.status = "pass"
+                return text
+            if exists(path):
+                if isfile(path):
+                    with open(path, "rt", encoding="utf-8") as file:
+                        audio = torch.FloatTensor(eval(file.read()))
+                    self._play_tensor(audio)
+
+                    self.status = "pass"
+                    return text
+            else:
+                audio: torch.Tensor = self.tts_model.apply_tts(
+                    text=text,
+                    speaker=self.speaker,
+                    sample_rate=self.sample_rate,
+                    put_accent=self.put_accent,
+                    put_yo=self.put_yo
+                )
+                with open(path, "wt", encoding="utf-8") as file:
+                    file.write(str(audio.tolist()))
+                self._play_tensor(audio)
+
+                self.status = "pass"
+                return text
+        except Exception as e:
+            msg = "Что-то произошло с нейрогенерацией речи..."
+            if config.say_errors:
+                self.speak(msg, 'neural-generation-trouble')
+            logger.error(msg)
+        finally:
+            self.status = "pass"
+            return text
