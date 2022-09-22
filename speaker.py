@@ -1,6 +1,9 @@
 import torch
 
 import time
+import re
+
+from num2words import num2words
 
 import sounddevice as sd
 
@@ -25,8 +28,14 @@ class Speaker:
     tts_device = torch.device('cpu')
     torch.set_num_threads(4)
 
-    tts_model, _ = torch.hub.load(
+    try: tts_model, _ = torch.hub.load(
         repo_or_dir="snakers4/silero-models",
+        model="silero_tts",
+        language=language,
+        speaker=model_id
+    )
+    except: tts_model, _ = torch.hub.load(
+        repo_or_dir="~/.cache/torch/hub/snakers4_silero-models_master",
         model="silero_tts",
         language=language,
         speaker=model_id
@@ -37,21 +46,33 @@ class Speaker:
     def _get_sound_path(self, title: str) -> str:
         ...
 
-    """
     def _num2word(self, string: str) -> str:
-        while re.fullmatch(r"\d+", string):
-            if re.fullmatch(r"\d{1,2}:\d{1,2}", string):
-                string = re.sub(
-                    r"\d{1,2}:\d{1,2}",
-                    lambda match: f"{num2words((words := match.group(0))[0], lang='ru')} часов {num2words(words[1], lang='ru')} минут",
-                    string
-                )
-            string = re.sub(r"\d+", lambda match: str(num2words(match.group(0), lang="ru")), string)
+        def time_replacer(time_string: str) -> str:
+            def replacer(match: re.Match[str]) -> str:
+                words = tuple(map(int, match.group(0).split(":")))
+                return f"{num2words(words[0], lang='ru')} часов {num2words(words[1], lang='ru')} минут"
+            
+            return re.sub(r"\d{1,2}:\d{1,2}", replacer, time_string)
+        
+        # TODO другие числовые значения
+        
+        def digit_replacer(digit_string: str) -> str:
+            def replacer(match: re.Match[str]) -> str:
+                digit = match.group(0)
+                return num2words(digit, lang='ru')
+            
+            return re.sub(r"\d+", replacer, digit_string)
+        
+        # TODO доделать это до приемлемого вида
+
+        while re.match(r".*\d+.*", string):
+            if re.fullmatch(r".*\d{1,2}:\d{1,2}.*", string):
+                string = time_replacer(string)
+            string = digit_replacer(string)
         return string
-    """
     
     def speak(self, text: str, label: str) -> str:
-        #text = self._num2word(text)
+        text = self._num2word(text)
         while self.status != "pass":
             pass
         self.status = "play"
