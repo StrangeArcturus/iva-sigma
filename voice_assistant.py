@@ -853,3 +853,23 @@ class VoiceAssistant(SpeechWorker):
                 )
             self.session.commit()
     #endnotice
+
+    #alarm
+    def new_alarm(self, argument: __Argument) -> None:
+        """
+        Создание будильника из диалога
+        """
+        ...
+    
+    def read_alarms(self, argument: __Argument) -> None:
+        """
+        Управление и CRUD будильников
+        """
+        ...
+    
+    def _check_alarms(self) ->  None:
+        """
+        Приватный метод демон для проверки будильников
+        """
+        ...
+    #endalarm
