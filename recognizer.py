@@ -6,6 +6,7 @@ import json
 
 from config import config
 from my_logger import logger
+from os.path import abspath
 
 
 class Recognizer:
@@ -14,9 +15,9 @@ class Recognizer:
     """
     status = "pass"
 
-    stt_model = vosk.Model("models/vosk-model-small-ru-0.22")
+    stt_model = vosk.Model(abspath("models/vosk-model-small-ru-0.22"))
     samplerate = 48_000
-    stt_device = 7
+    stt_device = 11
     q: queue.Queue[bytes] = queue.Queue()
 
     def callback(self, indata, frames, time, status):

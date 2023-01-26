@@ -8,6 +8,7 @@ from config import config
 from my_logger import logger
 
 from num2words import num2words
+from pymorphy2 import MorphAnalyzer as MA
 
 import sounddevice as sd
 
@@ -30,7 +31,8 @@ class Speaker:
     put_accent = True
     put_yo = True
     tts_device = torch.device('cpu')
-    torch.set_num_threads(4)
+    torch.set_num_threads(16)
+    _morph = MA()
 
     try: tts_model, _ = torch.hub.load(
         repo_or_dir="snakers4/silero-models",
@@ -54,9 +56,63 @@ class Speaker:
         def time_replacer(time_string: str) -> str:
             def replacer(match: re.Match[str]) -> str:
                 words = tuple(map(int, match.group(0).split(":")))
-                return f"{num2words(words[0], lang='ru')} часов {num2words(words[1], lang='ru')} минут"
+                hours = words[0]
+                minutes = words[1]
+                result_hour = (
+                    'час' if hours in (
+                        1, 21
+                    ) else 'часа' if hours in (
+                        2, 3, 4, 22, 23
+                    ) else 'часов'
+                )
+                result_minute = (
+                    'минута' if minutes in (
+                        1, 21, 31, 41, 51
+                    ) else 'минуты' if minutes in (
+                        2, 3, 4,
+                        22, 23, 24,
+                        32, 33, 34,
+                        42, 43, 44,
+                        52, 53, 54
+                    ) else 'минут'
+                )
+                return (
+                    f"{num2words(hours, lang='ru')} {result_hour} {num2words(minutes, lang='ru')} {result_minute}"
+                )
             
             return re.sub(r"\d{1,2}:\d{1,2}", replacer, time_string)
+        
+        def date_replacer(date_string: str) -> str:
+            def replacer(match: re.Match[str]) -> str:
+                words = tuple(map(int, match.group(0).split('.')))
+                months = {
+                    1: 'января',
+                    2: 'февраля',
+                    3: 'марта',
+                    4: 'апреля',
+                    5: 'мая',
+                    6: 'июня',
+                    7: 'июля',
+                    8: 'августа',
+                    9: 'сентября',
+                    10: 'октября',
+                    11: 'ноября',
+                    12: 'декабря'
+                }
+                day = words[0]
+                month = words[1]
+                year = words[2]
+                result_day = self._morph.parse(
+                    num2words(day, lang='ru', ordinal=True, to='cardinal'))[0].inflect({ # type: ignore
+                        'ADJF', 'neut', 'sing', 'nomn'
+                }).word # type: ignore
+                result_month = months[month]
+                result_year = num2words(year, lang='ru', ordinal=True, to='year')
+                return (
+                    f"{result_day} {result_month} {result_year}"
+                )
+            
+            return re.sub(r"\d{1,2}\.\d{1,2}\.\d{1,2}", replacer, date_string)
         
         # TODO другие числовые значения
         
@@ -72,6 +128,8 @@ class Speaker:
         while re.match(r".*\d+.*", string):
             if re.fullmatch(r".*\d{1,2}:\d{1,2}.*", string):
                 string = time_replacer(string)
+            if re.fullmatch(r".*\d{1,2}\.\d{1,2}\.\d{1,2}.*", string):
+                string = date_replacer(string)
             string = digit_replacer(string)
         return string
     
@@ -87,7 +145,7 @@ class Speaker:
             pass
         self.status = "play"
 
-        logger.log(f"Произношу:\n{text}")
+        logger.log(f"[Произношу]:\n{text}")
 
         try:
             if "dynamic-speech" in path:

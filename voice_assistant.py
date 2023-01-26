@@ -191,7 +191,7 @@ class VoiceAssistant(SpeechWorker):
             except Exception as e:
                 msg = "Упс, возникла ошибка..."
                 if config.say_errors:
-                    self.speak(msg, "runtime-error")
+                    print(msg) #self.speak(msg, "runtime-error")
                 logger.error(msg)
                 print(e)
     
@@ -372,7 +372,7 @@ class VoiceAssistant(SpeechWorker):
     #exit
     def bye(self, argument: __Argument) -> None:
         """
-        Завершение работы Яны
+        Завершение работы голосового ассистента
         """
         self.speak(
             "хорошо, хозяин, завершаю свою программу.",
