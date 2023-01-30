@@ -423,6 +423,7 @@ class VoiceAssistant(SpeechWorker):
         answer = ''
         end_char = ''
         user_city = ''
+        not_correct_answer = False
 
         if now_step == 'me':
             self.speak("хозяин, по воле случайности первый ход за мной", 'city/my-step-first')
@@ -487,7 +488,7 @@ class VoiceAssistant(SpeechWorker):
                 )))
                 end_char = answer.replace('ь', '').replace('ъ', '')[-1]
                 self.speak(
-                    f'мне на букву "{letter}", а потому я начну с города {answer}. Вам на "{end_char}"',
+                    f'мне на букву "{letter}", а потому мой ответ - город {answer}. Вам на "{end_char}"',
                     self.__DYNAMIC
                 )
                 citys.discard(answer)
@@ -504,8 +505,20 @@ class VoiceAssistant(SpeechWorker):
                         'city/cancel-game'
                     )
                     return
-                while user_city.lower() not in map(lambda city: city.lower(), citys):
-                    if user_city.lower() not in map(lambda city: city.lower(), used_citys):
+                #not_correct_answer = False
+                while user_city.lower() not in map(lambda city: city.lower(), citys) or user_city.lower()[0] != end_char:
+                    if user_city in cancel:
+                        self.speak(
+                            "я вас поняла, хозяин. завершение игрового навыка",
+                            'city/cancel-game'
+                        )
+                        return
+                    if user_city.lower() not in map(lambda city: city.lower(), used_citys):# and user_city.lower() == end_char:
+                        if user_city.lower()[0] != end_char:
+                            self.speak(f'вы немного ошиблись, хозяин, вам на букву "{end_char}", попробуйте снова', self.__DYNAMIC)
+                            user_city = self.input().capitalize()
+                            #not_correct_answer = True
+                            continue
                         self.speak(
                             f"города {user_city} не обнаружено в моей базе даннных из {len(citys) + len(used_citys)} городов, попробуйте снова",
                             self.__DYNAMIC
@@ -516,12 +529,6 @@ class VoiceAssistant(SpeechWorker):
                             self.__DYNAMIC
                         )
                     user_city = self.input().capitalize()
-                    if user_city in cancel:
-                        self.speak(
-                            "я вас поняла, хозяин. завершение игрового навыка",
-                            'city/cancel-game'
-                        )
-                        return
                 citys.discard(user_city)
                 used_citys.add(user_city)
                 end_char = user_city.replace('ь', '').replace('ъ', '')[-1]
