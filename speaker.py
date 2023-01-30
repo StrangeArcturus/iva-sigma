@@ -121,7 +121,7 @@ class Speaker:
                 digit = match.group(0)
                 return num2words(digit, lang='ru')
             
-            return re.sub(r"\d+", replacer, digit_string)
+            return re.sub(r"-{0,1}\d+", replacer, digit_string)
         
         # TODO доделать это до приемлемого вида
 

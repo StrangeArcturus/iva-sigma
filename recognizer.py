@@ -17,7 +17,7 @@ class Recognizer:
 
     stt_model = vosk.Model(abspath("models/vosk-model-small-ru-0.22"))
     samplerate = 48_000
-    stt_device = 11
+    stt_device = sd.default.device[0]
     q: queue.Queue[bytes] = queue.Queue()
 
     def callback(self, indata, frames, time, status):
